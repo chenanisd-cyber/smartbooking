@@ -1,0 +1,1 @@
+- 07/01/26 (Mahmoud): Nettoyage des dépendances Maven inutilisées.
