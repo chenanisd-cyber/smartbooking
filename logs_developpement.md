@@ -1,1 +1,2 @@
 - 07/01/26 (Mahmoud): Nettoyage des dépendances Maven inutilisées.
+- 11/01/26 (Mahmoud): Vérification des contraintes d'intégrité sur les modèles JPA.
