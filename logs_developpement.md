@@ -3,3 +3,4 @@
 - 15/01/26 (Mahmoud): Mise à jour des filtres de sécurité pour compatibilité Spring 6.
 - 19/01/26 (Mahmoud): Ajout des descriptions manquantes dans Swagger UI.
 - 23/01/26 (Mahmoud): Uniformisation des logs d'erreurs HTTP.
+- 27/01/26 (Mahmoud): Analyse statique du code et suppression des warnings.
