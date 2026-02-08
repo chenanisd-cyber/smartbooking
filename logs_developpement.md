@@ -6,3 +6,4 @@
 - 27/01/26 (Mahmoud): Analyse statique du code et suppression des warnings.
 - 31/01/26 (Mahmoud): Ajout de @Transactional sur les services critiques.
 - 04/02/26 (Mahmoud): Documentation des règles de modération dans le code.
+- 08/02/26 (Mahmoud): Extraction de la logique métier hors du controller.
