@@ -9,3 +9,4 @@
 - 08/02/26 (Mahmoud): Extraction de la logique métier hors du controller.
 - 12/02/26 (Mahmoud): Correction des erreurs de type TypeScript dans le Layout.
 - 16/02/26 (Mahmoud): Ajout de variables CSS pour le thème sombre.
+- 20/02/26 (Mahmoud): Ajustements responsive pour tablettes sur les formulaires.
