@@ -10,3 +10,4 @@
 - 12/02/26 (Mahmoud): Correction des erreurs de type TypeScript dans le Layout.
 - 16/02/26 (Mahmoud): Ajout de variables CSS pour le thème sombre.
 - 20/02/26 (Mahmoud): Ajustements responsive pour tablettes sur les formulaires.
+- 24/02/26 (Mahmoud): Nettoyage des Hooks React et optimisation des rendus.
