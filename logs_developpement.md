@@ -14,3 +14,4 @@
 - 28/02/26 (Mahmoud): Correction du z-index sur la sidebar du dashboard.
 - 04/03/26 (Mahmoud): Préparation du fichier .env.example pour le déploiement.
 - 08/03/26 (Mahmoud): Audit des scripts SQL de migration Flyway.
+- 12/03/26 (Mahmoud): Tri alphabétique des données JSON.
