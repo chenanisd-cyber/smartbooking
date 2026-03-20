@@ -16,3 +16,4 @@
 - 08/03/26 (Mahmoud): Audit des scripts SQL de migration Flyway.
 - 12/03/26 (Mahmoud): Tri alphabétique des données JSON.
 - 16/03/26 (Mahmoud): Ajout des badges de statut dans le README.
+- 20/03/26 (Mahmoud): Conversion des images en format WebP pour le Web.
