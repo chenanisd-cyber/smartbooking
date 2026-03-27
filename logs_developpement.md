@@ -18,3 +18,4 @@
 - 16/03/26 (Mahmoud): Ajout des badges de statut dans le README.
 - 20/03/26 (Mahmoud): Conversion des images en format WebP pour le Web.
 - 24/03/26 (Mahmoud): Mise en place d'une structure modulaire pour le frontend.
+- 27/03/26 (Mahmoud): Nettoyage des fichiers temporaires avant livraison.
