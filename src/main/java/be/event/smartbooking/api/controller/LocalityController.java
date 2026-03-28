@@ -25,6 +25,13 @@ public class LocalityController {
         return localityRepository.findAll().stream().map(LocalityDto::from).toList();
     }
 
+    @GetMapping("/{id}")
+    public LocalityDto getById(@PathVariable Integer id) {
+        return localityRepository.findById(id)
+            .map(LocalityDto::from)
+            .orElseThrow(() -> new RuntimeException("Locality not found: " + id));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LocalityDto> create(@RequestBody LocalityDto req) {
@@ -33,6 +40,16 @@ public class LocalityController {
         locality.setPostalCode(req.postalCode());
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(LocalityDto.from(localityRepository.save(locality)));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public LocalityDto update(@PathVariable Integer id, @RequestBody LocalityDto req) {
+        Locality locality = localityRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Locality not found: " + id));
+        locality.setName(req.name());
+        locality.setPostalCode(req.postalCode());
+        return LocalityDto.from(localityRepository.save(locality));
     }
 
     @DeleteMapping("/{id}")
