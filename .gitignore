@@ -1,0 +1,17 @@
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.DS_Store
+
+# Spring Boot
+*.log
+uploads/
+
+# Environment / secrets
+.env
+application-local.properties
