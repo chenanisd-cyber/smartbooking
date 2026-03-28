@@ -18,6 +18,7 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
@@ -51,6 +52,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/shows/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/artists/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/localities/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/artist-types/**").permitAll()
                 // Admin only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Everything else needs login
