@@ -49,6 +49,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                .requestMatchers("/images/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/shows/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/artists/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
