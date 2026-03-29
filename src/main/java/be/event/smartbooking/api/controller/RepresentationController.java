@@ -19,6 +19,12 @@ public class RepresentationController {
         this.representationService = representationService;
     }
 
+    // Public — get representation details (needed for the booking form)
+    @GetMapping("/{id}")
+    public ResponseEntity<RepresentationDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(RepresentationDto.from(representationService.findById(id)));
+    }
+
     // Admin — add a representation (date/time/location/prices) to a show
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
