@@ -1,0 +1,25 @@
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1.25rem 0;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.footer-logo {
+  font-weight: 700;
+  color: var(--text);
+  font-size: .95rem;
+}
+.footer-logo span { color: var(--primary); }
+
+.footer-copy {
+  font-size: .82rem;
+  color: var(--muted);
+}
