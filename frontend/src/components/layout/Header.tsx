@@ -40,7 +40,7 @@ export default function Header() {
         <div className="header-actions">
           {user ? (
             <>
-              <span className="header-username">👤 {user.login}</span>
+              <Link to="/profile" className="header-username">👤 {user.login}</Link>
               <button onClick={handleLogout} className="btn btn-outline btn-sm">
                 Déconnexion
               </button>
