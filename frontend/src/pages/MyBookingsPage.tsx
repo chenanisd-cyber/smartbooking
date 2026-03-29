@@ -15,7 +15,7 @@ export default function MyBookingsPage() {
   const [error, setError]               = useState<string | null>(null)
 
   // Formulaire d'avis inline par réservation
-  const [reviewFor, setReviewFor]   = useState<number | null>(null) // showId
+  const [reviewFor, setReviewFor]   = useState<number | null>(null) // reservation id
   const [stars, setStars]           = useState(5)
   const [comment, setComment]       = useState('')
   const [reviewError, setReviewError] = useState<string | null>(null)
@@ -39,7 +39,7 @@ export default function MyBookingsPage() {
   const formatTime = (dt: string) =>
     new Date(dt).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
 
-  const handleReviewSubmit = async (showSlug: string, showId: number) => {
+  const handleReviewSubmit = async (showSlug: string, showId: number, reservationId: number) => {
     setReviewError(null)
     setReviewSuccess(null)
     setSubmittingReview(true)
@@ -47,6 +47,7 @@ export default function MyBookingsPage() {
       await reviewApi.create({ showId, stars, comment })
       setReviewSuccess('Avis envoyé ! Il sera visible après validation.')
       setReviewFor(null)
+      void reservationId // utilisé pour identifier quelle carte est ouverte
       setComment('')
       setStars(5)
     } catch (err: unknown) {
@@ -128,7 +129,7 @@ export default function MyBookingsPage() {
                       <div className="review-form-actions">
                         <button
                           className="btn btn-primary btn-sm"
-                          onClick={() => handleReviewSubmit(r.showSlug, r.id)}
+                          onClick={() => handleReviewSubmit(r.showSlug, r.showId, r.id)}
                           disabled={submittingReview || !comment.trim()}
                         >
                           {submittingReview ? 'Envoi…' : 'Envoyer l\'avis'}
