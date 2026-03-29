@@ -12,6 +12,9 @@ target/
 *.log
 # uploads/ — inclus dans git pour les images du jeu de données
 
+# Notes locales
+TODO.txt
+
 # Environment / secrets
 .env
 application-local.properties
