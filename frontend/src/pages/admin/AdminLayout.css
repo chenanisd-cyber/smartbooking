@@ -1,0 +1,130 @@
+/* Disposition sidebar + contenu */
+.admin-wrapper {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  align-items: start;
+  padding-top: 1rem;
+  padding-bottom: 3rem;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  position: sticky;
+  top: 80px; /* sous le header */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 0;
+}
+
+.admin-sidebar-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 1rem .75rem;
+  border-bottom: 1px solid var(--border);
+  margin: 0 0 .5rem;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-nav-link {
+  display: block;
+  padding: .6rem 1rem;
+  font-size: .88rem;
+  color: var(--text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background .15s, border-color .15s;
+}
+.admin-nav-link:hover {
+  background: #f1f5f9;
+}
+.admin-nav-link.active {
+  border-left-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  background: #eff6ff;
+}
+
+/* Contenu */
+.admin-content {
+  min-width: 0; /* évite le débordement en grid */
+}
+
+/* Titre de section */
+.admin-section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+/* Tableau admin générique */
+.admin-table-wrapper {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+}
+.admin-table th {
+  text-align: left;
+  padding: .6rem .9rem;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.admin-table td {
+  padding: .7rem .9rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--text);
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: #f8fafc; }
+
+/* Actions dans les cellules */
+.admin-actions {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    position: static;
+  }
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .admin-nav-link {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+  }
+  .admin-nav-link.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--primary);
+  }
+}
