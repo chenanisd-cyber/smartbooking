@@ -67,6 +67,7 @@ export interface Show {
 
 export interface Reservation {
   id: number
+  showId: number
   showTitle: string
   showSlug: string
   locationName: string | null

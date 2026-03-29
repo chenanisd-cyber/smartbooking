@@ -9,8 +9,15 @@ import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
 import MyBookingsPage from './pages/MyBookingsPage'
 import ReservationPage from './pages/ReservationPage'
-const AdminPage       = () => <div className="container" style={{padding:'3rem 0'}}><h2>Administration (étape 13)</h2></div>
-const NotFound        = () => <div className="container" style={{padding:'3rem 0', textAlign:'center'}}><h2>404 — Page introuvable</h2></div>
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminShows from './pages/admin/AdminShows'
+import AdminArtists from './pages/admin/AdminArtists'
+import AdminLocations from './pages/admin/AdminLocations'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminReviews from './pages/admin/AdminReviews'
+
+const AdminHome = () => <div style={{color:'var(--muted)'}}>Sélectionnez une section dans le menu.</div>
+const NotFound  = () => <div className="container" style={{padding:'3rem 0', textAlign:'center'}}><h2>404 — Page introuvable</h2></div>
 
 export default function App() {
   return (
@@ -28,7 +35,14 @@ export default function App() {
               <Route path="/my-bookings"         element={<MyBookingsPage />} />
               <Route path="/reservation/:repId"  element={<ReservationPage />} />
 
-              <Route path="/admin/*"             element={<AdminPage />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminHome />} />
+                <Route path="shows"   element={<AdminShows />} />
+                <Route path="artists"   element={<AdminArtists />} />
+                <Route path="locations" element={<AdminLocations />} />
+                <Route path="users"     element={<AdminUsers />} />
+                <Route path="reviews"   element={<AdminReviews />} />
+              </Route>
               <Route path="*"                    element={<NotFound />} />
             </Routes>
           </main>

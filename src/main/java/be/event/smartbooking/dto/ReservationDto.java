@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 public record ReservationDto(
     Long id,
+    Long showId,
     String showTitle,
     String showSlug,
     String locationName,
@@ -23,6 +24,7 @@ public record ReservationDto(
         var rep = r.getRepresentation();
         return new ReservationDto(
             r.getId(),
+            rep.getShow().getId(),
             rep.getShow().getTitle(),
             rep.getShow().getSlug(),
             rep.getLocation() != null ? rep.getLocation().getName() : null,
