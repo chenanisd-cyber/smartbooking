@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/localities/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/artist-types/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/show/**").permitAll()
                 // Admin only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Everything else needs login
