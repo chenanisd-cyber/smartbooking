@@ -55,6 +55,11 @@ public class RepresentationService {
         return representationRepository.save(rep);
     }
 
+    public Representation findById(Long id) {
+        return representationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Representation not found: " + id));
+    }
+
     public void delete(Long id) {
         if (!representationRepository.existsById(id)) {
             throw new RuntimeException("Representation not found: " + id);
