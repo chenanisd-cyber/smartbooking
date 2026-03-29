@@ -40,15 +40,17 @@ export default function ShowCard({ show }: Props) {
             {next.location && <span> · {next.location.name}</span>}
           </p>
         )}
+      </div>
 
-        <div className="show-card-footer">
-          {minPrice !== null && (
-            <span className="show-card-price">À partir de {minPrice} €</span>
-          )}
-          <Link to={`/shows/${show.slug}`} className="btn btn-primary btn-sm">
-            Voir le spectacle
-          </Link>
-        </div>
+      {/* Footer séparé du body */}
+      <div className="show-card-footer">
+        {minPrice !== null
+          ? <span className="show-card-price">À partir de {minPrice} €</span>
+          : <span />
+        }
+        <Link to={`/shows/${show.slug}`} className="btn btn-primary btn-sm">
+          Voir le spectacle
+        </Link>
       </div>
     </div>
   )
