@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider } from './context/AuthContext'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
@@ -9,6 +10,7 @@ import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
 import MyBookingsPage from './pages/MyBookingsPage'
 import ReservationPage from './pages/ReservationPage'
+import NotFoundPage from './pages/NotFoundPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminShows from './pages/admin/AdminShows'
 import AdminArtists from './pages/admin/AdminArtists'
@@ -16,34 +18,42 @@ import AdminLocations from './pages/admin/AdminLocations'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminReviews from './pages/admin/AdminReviews'
 
-const AdminHome = () => <div style={{color:'var(--muted)'}}>Sélectionnez une section dans le menu.</div>
-const NotFound  = () => <div className="container" style={{padding:'3rem 0', textAlign:'center'}}><h2>404 — Page introuvable</h2></div>
+const AdminHome = () => <div style={{ color: 'var(--muted)' }}>Sélectionnez une section dans le menu.</div>
+
+// Remonte en haut de page à chaque changement de route
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ScrollToTop />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Header />
           <main style={{ flex: 1, padding: '2rem 0' }}>
             <Routes>
-              <Route path="/"                    element={<HomePage />} />
-              <Route path="/shows/:slug"         element={<ShowDetailPage />} />
-              <Route path="/login"               element={<LoginPage />} />
-              <Route path="/register"            element={<RegisterPage />} />
-              <Route path="/profile"             element={<ProfilePage />} />
-              <Route path="/my-bookings"         element={<MyBookingsPage />} />
-              <Route path="/reservation/:repId"  element={<ReservationPage />} />
+              <Route path="/"                   element={<HomePage />} />
+              <Route path="/shows/:slug"        element={<ShowDetailPage />} />
+              <Route path="/login"              element={<LoginPage />} />
+              <Route path="/register"           element={<RegisterPage />} />
+              <Route path="/profile"            element={<ProfilePage />} />
+              <Route path="/my-bookings"        element={<MyBookingsPage />} />
+              <Route path="/reservation/:repId" element={<ReservationPage />} />
 
               <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminHome />} />
-                <Route path="shows"   element={<AdminShows />} />
+                <Route index          element={<AdminHome />} />
+                <Route path="shows"     element={<AdminShows />} />
                 <Route path="artists"   element={<AdminArtists />} />
                 <Route path="locations" element={<AdminLocations />} />
                 <Route path="users"     element={<AdminUsers />} />
                 <Route path="reviews"   element={<AdminReviews />} />
               </Route>
-              <Route path="*"                    element={<NotFound />} />
+
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
           <Footer />
