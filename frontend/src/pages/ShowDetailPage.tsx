@@ -17,14 +17,11 @@ export default function ShowDetailPage() {
 
   useEffect(() => {
     if (!slug) return
-    Promise.all([
-      showApi.getBySlug(slug),
-      showApi.getBySlug(slug).then(s => reviewApi.getByShow(s.id)),
-    ])
-      .then(([showData, reviewData]) => {
-        setShow(showData)
-        setReviews(reviewData)
-      })
+    showApi.getBySlug(slug)
+      .then(s => reviewApi.getByShow(s.id).then(reviews => {
+        setShow(s)
+        setReviews(reviews)
+      }))
       .catch(() => setError('Spectacle introuvable.'))
       .finally(() => setLoading(false))
   }, [slug])

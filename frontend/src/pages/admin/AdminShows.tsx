@@ -1,41 +1,52 @@
 import { useEffect, useState } from 'react'
-import { showApi, artistApi } from '../../services/api'
-import type { Show, Artist } from '../../types/models'
+import { showApi, artistApi, locationApi, representationApi } from '../../services/api'
+import type { Show, Artist, Location } from '../../types/models'
 import ShowFormModal from './ShowFormModal'
+import RepresentationFormModal from './RepresentationFormModal'
 
 export default function AdminShows() {
-  const [shows, setShows]     = useState<Show[]>([])
-  const [artists, setArtists] = useState<Artist[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState<string | null>(null)
+  const [shows, setShows]         = useState<Show[]>([])
+  const [artists, setArtists]     = useState<Artist[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState<string | null>(null)
 
-  // Modal : null = fermé, 'create' = nouveau, show = édition
-  const [modal, setModal] = useState<null | 'create' | Show>(null)
+  // Modal spectacle : null = fermé, 'create' = nouveau, Show = édition
+  const [showModal, setShowModal] = useState<null | 'create' | Show>(null)
+
+  // Modal représentation : id du spectacle concerné
+  const [repModal, setRepModal]   = useState<number | null>(null)
+
+  // Panneau déroulant des dates par spectacle
+  const [expanded, setExpanded]   = useState<number | null>(null)
 
   const load = () => {
-    Promise.all([showApi.getAllAdmin(), artistApi.getAll()])
-      .then(([s, a]) => { setShows(s); setArtists(a) })
+    Promise.all([showApi.getAllAdmin(), artistApi.getAll(), locationApi.getAll()])
+      .then(([s, a, l]) => { setShows(s); setArtists(a); setLocations(l) })
       .catch(() => setError('Erreur de chargement'))
       .finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [])
 
-  const handleConfirm = async (id: number) => {
-    await showApi.confirm(id)
-    load()
-  }
+  const handleConfirm = async (id: number) => { await showApi.confirm(id); load() }
+  const handleRevoke  = async (id: number) => { await showApi.revoke(id);  load() }
 
-  const handleRevoke = async (id: number) => {
-    await showApi.revoke(id)
-    load()
-  }
-
-  const handleDelete = async (id: number, title: string) => {
+  const handleDeleteShow = async (id: number, title: string) => {
     if (!confirm(`Supprimer "${title}" ?`)) return
     await showApi.delete(id)
     load()
   }
+
+  const handleDeleteRep = async (repId: number) => {
+    if (!confirm('Supprimer cette représentation ?')) return
+    await representationApi.delete(repId)
+    load()
+  }
+
+  const formatDate = (dt: string) =>
+    new Date(dt).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ' ' + new Date(dt).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
 
   if (loading) return <div className="spinner" />
   if (error)   return <div className="alert alert-error">{error}</div>
@@ -44,7 +55,7 @@ export default function AdminShows() {
     <div>
       <div className="admin-section-title">
         Spectacles
-        <button className="btn btn-primary btn-sm" onClick={() => setModal('create')}>
+        <button className="btn btn-primary btn-sm" onClick={() => setShowModal('create')}>
           + Nouveau spectacle
         </button>
       </div>
@@ -52,56 +63,84 @@ export default function AdminShows() {
       {shows.length === 0 ? (
         <p style={{ color: 'var(--muted)' }}>Aucun spectacle.</p>
       ) : (
-        <div className="admin-table-wrapper card">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Titre</th>
-                <th>Artiste</th>
-                <th>Statut</th>
-                <th>Dates</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shows.map(s => (
-                <tr key={s.id}>
-                  <td><strong>{s.title}</strong></td>
-                  <td>{s.artist?.name ?? <span style={{color:'var(--muted)'}}>—</span>}</td>
-                  <td>
-                    <span className={`badge ${s.isConfirmed ? 'badge-green' : 'badge-grey'}`}>
-                      {s.isConfirmed ? 'Confirmé' : 'Non confirmé'}
-                    </span>
-                  </td>
-                  <td>{s.representations.length} date{s.representations.length !== 1 ? 's' : ''}</td>
-                  <td>
-                    <div className="admin-actions">
-                      <button className="btn btn-outline btn-sm" onClick={() => setModal(s)}>
-                        Modifier
-                      </button>
-                      {s.isConfirmed
-                        ? <button className="btn btn-outline btn-sm" onClick={() => handleRevoke(s.id)}>Révoquer</button>
-                        : <button className="btn btn-primary btn-sm" onClick={() => handleConfirm(s.id)}>Confirmer</button>
-                      }
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.id, s.title)}>
-                        Supprimer
-                      </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
+          {shows.map(s => (
+            <div key={s.id} className="card">
+              {/* Ligne principale */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '.85rem 1rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <strong>{s.title}</strong>
+                  {s.artist && <span style={{ color: 'var(--muted)', fontSize: '.82rem', marginLeft: '.5rem' }}>{s.artist.name}</span>}
+                </div>
+                <span className={`badge ${s.isConfirmed ? 'badge-green' : 'badge-grey'}`}>
+                  {s.isConfirmed ? 'Confirmé' : 'Non confirmé'}
+                </span>
+                <div className="admin-actions">
+                  <button className="btn btn-outline btn-sm" onClick={() => setExpanded(expanded === s.id ? null : s.id)}>
+                    📅 {s.representations.length} date{s.representations.length !== 1 ? 's' : ''}
+                  </button>
+                  <button className="btn btn-outline btn-sm" onClick={() => setShowModal(s)}>Modifier</button>
+                  {s.isConfirmed
+                    ? <button className="btn btn-outline btn-sm" onClick={() => handleRevoke(s.id)}>Révoquer</button>
+                    : <button className="btn btn-primary btn-sm" onClick={() => handleConfirm(s.id)}>Confirmer</button>
+                  }
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteShow(s.id, s.title)}>Supprimer</button>
+                </div>
+              </div>
+
+              {/* Panneau des représentations */}
+              {expanded === s.id && (
+                <div style={{ borderTop: '1px solid var(--border)', padding: '1rem', background: 'var(--surface)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
+                    <span style={{ fontSize: '.85rem', fontWeight: 600, color: 'var(--muted)' }}>Représentations</span>
+                    <button className="btn btn-primary btn-sm" onClick={() => setRepModal(s.id)}>
+                      + Ajouter une date
+                    </button>
+                  </div>
+
+                  {s.representations.length === 0 ? (
+                    <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Aucune date programmée.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+                      {s.representations
+                        .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime())
+                        .map(rep => (
+                          <div key={rep.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '.85rem', flexWrap: 'wrap' }}>
+                            <span>📅 {formatDate(rep.dateTime)}</span>
+                            {rep.location && <span style={{ color: 'var(--muted)' }}>📍 {rep.location.name}</span>}
+                            <span style={{ color: 'var(--success)' }}>{rep.availableSeats} places</span>
+                            <span style={{ color: 'var(--muted)' }}>
+                              {rep.prices.map(p => `${p.type} ${p.amount}€`).join(' · ')}
+                            </span>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRep(rep.id)}>✕</button>
+                          </div>
+                        ))}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Modal création / édition */}
-      {modal !== null && (
+      {/* Modal spectacle */}
+      {showModal !== null && (
         <ShowFormModal
-          show={modal === 'create' ? null : modal}
+          show={showModal === 'create' ? null : showModal}
           artists={artists}
-          onClose={() => setModal(null)}
-          onSaved={() => { setModal(null); load() }}
+          onClose={() => setShowModal(null)}
+          onSaved={() => { setShowModal(null); load() }}
+        />
+      )}
+
+      {/* Modal représentation */}
+      {repModal !== null && (
+        <RepresentationFormModal
+          showId={repModal}
+          locations={locations}
+          onClose={() => setRepModal(null)}
+          onSaved={() => { setRepModal(null); load() }}
         />
       )}
     </div>
