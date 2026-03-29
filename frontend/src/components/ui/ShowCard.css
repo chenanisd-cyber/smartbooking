@@ -55,12 +55,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   margin-top: auto;
-  padding-top: .75rem;
+  padding: .85rem 1.1rem 1.1rem;
   border-top: 1px solid var(--border);
 }
 .show-card-price {
-  font-size: .85rem;
-  font-weight: 600;
+  font-size: .9rem;
+  font-weight: 700;
   color: var(--primary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
