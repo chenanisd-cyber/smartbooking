@@ -20,3 +20,4 @@
 - 24/03/26 (Mahmoud): Mise en place d'une structure modulaire pour le frontend.
 - 27/03/26 (Mahmoud): Nettoyage des fichiers temporaires avant livraison.
 - 29/03/26 (Mahmoud): Finalisation des règles d'exclusion Git.
+- 29/03/26 (Mahmoud): Audit final du code et documentation technique.
