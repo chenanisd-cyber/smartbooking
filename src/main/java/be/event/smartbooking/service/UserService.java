@@ -8,6 +8,8 @@ import be.event.smartbooking.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -53,5 +55,59 @@ public class UserService {
     public User findByLogin(String login) {
         return userRepository.findByLogin(login)
             .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public User findById(Long id) {
+        return userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found: " + id));
+    }
+
+    // Admin — list all users
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    // Admin — activate a user account
+    public User activate(Long id) {
+        User user = findById(id);
+        user.setActive(true);
+        return userRepository.save(user);
+    }
+
+    // Admin — deactivate a user account (blocks login)
+    public User deactivate(Long id) {
+        User user = findById(id);
+        user.setActive(false);
+        return userRepository.save(user);
+    }
+
+    // Admin — approve a producer account (allows login)
+    public User approve(Long id) {
+        User user = findById(id);
+        user.setApproved(true);
+        user.setActive(true);
+        return userRepository.save(user);
+    }
+
+    // Admin — delete a user
+    public void delete(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    // Member — update own profile (first/last name, email)
+    public User updateProfile(String login, String firstName, String lastName, String email) {
+        User user = findByLogin(login);
+        if (firstName != null) user.setFirstName(firstName);
+        if (lastName != null) user.setLastName(lastName);
+        if (email != null && !email.equals(user.getEmail())) {
+            if (userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("Email already in use");
+            }
+            user.setEmail(email);
+        }
+        return userRepository.save(user);
     }
 }
