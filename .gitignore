@@ -10,8 +10,9 @@ target/
 
 # Spring Boot
 *.log
-uploads/
+# uploads/ — inclus dans git pour les images du jeu de données
 
 # Environment / secrets
 .env
 application-local.properties
+frontend/node_modules/
