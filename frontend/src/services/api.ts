@@ -115,6 +115,17 @@ export const reviewApi = {
   delete: (id: number) => request<void>(`${BASE}/reviews/${id}`, { method: 'DELETE' }),
 }
 
+// ---- Payments (Stripe) ----
+export const paymentApi = {
+  getConfig: () => request<{ publishableKey: string }>(`${BASE}/payments/config`),
+  createIntent: (data: object) => request<{ clientSecret: string; reservationId: number }>(
+    `${BASE}/payments/create-intent`, { method: 'POST', body: JSON.stringify(data) }
+  ),
+  confirm: (reservationId: number) => request<Reservation>(
+    `${BASE}/payments/confirm/${reservationId}`, { method: 'POST' }
+  ),
+}
+
 // ---- Admin users ----
 export const userApi = {
   getAll: () => request<User[]>(`${BASE}/users`),
