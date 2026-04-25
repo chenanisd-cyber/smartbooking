@@ -40,6 +40,9 @@ public class Reservation {
     @Column(nullable = false)
     private ReservationStatus status = ReservationStatus.CONFIRMED;
 
+    @Column(name = "stripe_payment_intent_id")
+    private String stripePaymentIntentId;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }

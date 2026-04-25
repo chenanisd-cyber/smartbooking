@@ -68,6 +68,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Stripe -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>25.1.0</version>
+        </dependency>
+
         <!-- HATEOAS -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
