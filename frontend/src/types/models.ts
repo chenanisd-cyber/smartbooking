@@ -95,5 +95,7 @@ export interface Review {
   comment: string
   stars: number
   validated: boolean
+  reviewType: 'MEMBER_REVIEW' | 'PRESS_REVIEW'
+  articleUrl: string | null
   createdAt: string
 }
