@@ -50,6 +50,7 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/users/login", "/api/users/register",
                                  "/api/users/forgot-password", "/api/users/reset-password").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/shows/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/artists/**").permitAll()
@@ -104,6 +105,9 @@ public class SecurityConfig {
                     objectMapper.writeValue(res.getWriter(), Map.of("error", "Authentication required"));
                 })
             )
+
+            // HTTP Basic auth — pour les clients API (Postman, scripts, etc.)
+            .httpBasic(basic -> {})
 
             .userDetailsService(userDetailsService);
 
