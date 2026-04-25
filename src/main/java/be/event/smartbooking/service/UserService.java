@@ -5,6 +5,8 @@ import be.event.smartbooking.model.Role;
 import be.event.smartbooking.model.User;
 import be.event.smartbooking.repository.RoleRepository;
 import be.event.smartbooking.repository.UserRepository;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +18,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+    public UserService(UserRepository userRepository, RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder, JavaMailSender mailSender) {
+        this.userRepository  = userRepository;
+        this.roleRepository  = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mailSender      = mailSender;
     }
 
     public User register(RegisterRequest req) {
@@ -49,7 +54,41 @@ public class UserService {
             .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
         user.getRoles().add(role);
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        sendWelcomeEmail(saved, roleName);
+        return saved;
+    }
+
+    private void sendWelcomeEmail(User user, String roleName) {
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setTo(user.getEmail());
+
+            if (roleName.equals("producer")) {
+                msg.setSubject("SmartBooking — Demande de compte producteur reçue");
+                msg.setText(
+                    "Bonjour " + user.getFirstName() + ",\n\n" +
+                    "Votre demande de compte producteur a bien été enregistrée.\n\n" +
+                    "Un administrateur va examiner votre demande. " +
+                    "Vous recevrez un accès dès que votre compte sera approuvé.\n\n" +
+                    "Identifiant : " + user.getLogin() + "\n\n" +
+                    "L'équipe SmartBooking"
+                );
+            } else {
+                msg.setSubject("SmartBooking — Bienvenue !");
+                msg.setText(
+                    "Bonjour " + user.getFirstName() + ",\n\n" +
+                    "Votre compte a été créé avec succès. Vous pouvez dès maintenant vous connecter.\n\n" +
+                    "Identifiant : " + user.getLogin() + "\n\n" +
+                    "Bonne découverte de notre catalogue de spectacles !\n\n" +
+                    "L'équipe SmartBooking"
+                );
+            }
+
+            mailSender.send(msg);
+        } catch (Exception e) {
+            // Ne pas bloquer l'inscription si l'envoi d'email échoue
+        }
     }
 
     public User findByLogin(String login) {
