@@ -1,0 +1,79 @@
+.share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .25rem;
+}
+
+.share-label {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-right: .1rem;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.share-btn:hover {
+  opacity: .85;
+  transform: translateY(-1px);
+}
+
+.share-btn:active {
+  transform: translateY(0);
+}
+
+/* Facebook */
+.share-btn--facebook {
+  background: #1877f2;
+  color: #fff;
+}
+
+/* Twitter / X */
+.share-btn--twitter {
+  background: #000;
+  color: #fff;
+}
+
+/* WhatsApp */
+.share-btn--whatsapp {
+  background: #25d366;
+  color: #fff;
+}
+
+/* LinkedIn */
+.share-btn--linkedin {
+  background: #0a66c2;
+  color: #fff;
+}
+
+/* Web Share API */
+.share-btn--native {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Copy */
+.share-btn--copy {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.share-btn--copy.copied {
+  border-color: var(--success);
+  color: var(--success);
+}

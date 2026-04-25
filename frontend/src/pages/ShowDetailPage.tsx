@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import type { Show, Review } from '../types/models'
 import StarRating from '../components/ui/StarRating'
 import StarRatingInput from '../components/ui/StarRatingInput'
+import ShareButtons from '../components/ui/ShareButtons'
 import './ShowDetailPage.css'
 
 export default function ShowDetailPage() {
@@ -123,6 +124,8 @@ export default function ShowDetailPage() {
           {show.description && (
             <p className="show-detail-desc">{show.description}</p>
           )}
+
+          <ShareButtons title={show.title} />
         </div>
       </div>
 
