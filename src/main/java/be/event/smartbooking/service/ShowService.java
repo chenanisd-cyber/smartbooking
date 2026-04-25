@@ -161,6 +161,20 @@ public class ShowService {
         showRepository.deleteById(id);
     }
 
+    public Show addCollaborator(Long showId, Long artistId) {
+        Show show = findById(showId);
+        Artist artist = artistRepository.findById(artistId)
+            .orElseThrow(() -> new RuntimeException("Artist not found: " + artistId));
+        show.getCollaborators().add(artist);
+        return showRepository.save(show);
+    }
+
+    public Show removeCollaborator(Long showId, Long artistId) {
+        Show show = findById(showId);
+        show.getCollaborators().removeIf(a -> a.getId().equals(artistId));
+        return showRepository.save(show);
+    }
+
     // Save image to uploads/ folder, return relative path
     private String saveImage(MultipartFile file) throws IOException {
         String ext = getExtension(file.getOriginalFilename());

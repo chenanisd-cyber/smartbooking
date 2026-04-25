@@ -102,4 +102,18 @@ public class ShowController {
         showService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Admin — add collaborating artist to a show
+    @PostMapping("/{id}/collaborators/{artistId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ShowDto addCollaborator(@PathVariable Long id, @PathVariable Long artistId) {
+        return ShowDto.from(showService.addCollaborator(id, artistId));
+    }
+
+    // Admin — remove collaborating artist from a show
+    @DeleteMapping("/{id}/collaborators/{artistId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ShowDto removeCollaborator(@PathVariable Long id, @PathVariable Long artistId) {
+        return ShowDto.from(showService.removeCollaborator(id, artistId));
+    }
 }

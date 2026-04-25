@@ -69,6 +69,7 @@ export interface Show {
   imagePath: string | null
   isConfirmed: boolean
   artist: Artist | null
+  collaborators: Artist[]
   representations: Representation[]
   createdAt: string
 }
