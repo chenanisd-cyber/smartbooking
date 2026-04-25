@@ -1,4 +1,4 @@
-import type { Artist, ArtistType, Location, Locality, Show, Reservation, Review, User, PageResponse } from '../types/models'
+import type { Artist, ArtistType, Location, Locality, Show, Reservation, Review, User, PageResponse, ProducerStats } from '../types/models'
 
 const BASE = '/api'
 
@@ -125,6 +125,11 @@ export const paymentApi = {
   confirm: (reservationId: number) => request<Reservation>(
     `${BASE}/payments/confirm/${reservationId}`, { method: 'POST' }
   ),
+}
+
+// ---- Producer ----
+export const producerApi = {
+  getStats: () => request<ProducerStats>(`${BASE}/producer/stats`),
 }
 
 // ---- Admin users ----

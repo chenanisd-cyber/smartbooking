@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import './Header.css'
 
 export default function Header() {
-  const { user, logout, isAdmin } = useAuth()
+  const { user, logout, isAdmin, isProducer } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -27,6 +27,11 @@ export default function Header() {
           {user && (
             <NavLink to="/my-bookings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
               Mes réservations
+            </NavLink>
+          )}
+          {(isProducer || isAdmin) && (
+            <NavLink to="/producer/stats" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+              Statistiques
             </NavLink>
           )}
           {isAdmin && (

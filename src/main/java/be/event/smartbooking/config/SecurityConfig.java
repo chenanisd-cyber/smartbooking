@@ -62,6 +62,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/representations/**").permitAll()
                 // Admin only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Producer & admin
+                .requestMatchers("/api/producer/**").hasAnyRole("PRODUCER", "ADMIN")
                 // Everything else needs login
                 .anyRequest().authenticated()
             )
