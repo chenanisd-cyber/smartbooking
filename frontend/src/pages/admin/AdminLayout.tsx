@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/admin/locations', label: '📍 Lieux'       },
   { to: '/admin/users',     label: '👥 Utilisateurs' },
   { to: '/admin/reviews',   label: '⭐ Avis'         },
+  { to: '/admin/csv',       label: '📄 Import/Export' },
 ]
 
 export default function AdminLayout() {

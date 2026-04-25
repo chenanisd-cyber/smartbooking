@@ -19,6 +19,7 @@ import AdminArtists from './pages/admin/AdminArtists'
 import AdminLocations from './pages/admin/AdminLocations'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminReviews from './pages/admin/AdminReviews'
+import AdminCsv from './pages/admin/AdminCsv'
 import ProducerStatsPage from './pages/ProducerStatsPage'
 import ProducerReviewsPage from './pages/ProducerReviewsPage'
 
@@ -59,6 +60,7 @@ export default function App() {
                 <Route path="locations" element={<AdminLocations />} />
                 <Route path="users"     element={<AdminUsers />} />
                 <Route path="reviews"   element={<AdminReviews />} />
+                <Route path="csv"       element={<AdminCsv />} />
               </Route>
 
               <Route path="*" element={<NotFoundPage />} />
