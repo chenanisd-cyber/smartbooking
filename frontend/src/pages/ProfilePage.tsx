@@ -6,7 +6,7 @@ import './AuthPages.css'
 import './ProfilePage.css'
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth()
+  const { user, loading, logout } = useAuth()
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
