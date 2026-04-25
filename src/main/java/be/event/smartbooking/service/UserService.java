@@ -97,6 +97,22 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    // Member — delete own account
+    public void deleteSelf(String login) {
+        User user = findByLogin(login);
+        // Prevent the last admin from deleting themselves
+        boolean isAdmin = user.getRoles().stream().anyMatch(r -> r.getName().equals("admin"));
+        if (isAdmin) {
+            long adminCount = userRepository.findAll().stream()
+                .filter(u -> u.getRoles().stream().anyMatch(r -> r.getName().equals("admin")))
+                .count();
+            if (adminCount <= 1) {
+                throw new IllegalArgumentException("Impossible de supprimer le dernier compte administrateur.");
+            }
+        }
+        userRepository.delete(user);
+    }
+
     // Member — update own profile (first/last name, email)
     public User updateProfile(String login, String firstName, String lastName, String email) {
         User user = findByLogin(login);

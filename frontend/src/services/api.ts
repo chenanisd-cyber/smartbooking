@@ -39,6 +39,7 @@ export const authApi = {
   updateProfile: (data: object) => request<User>(`${BASE}/users/profile`, {
     method: 'PUT', body: JSON.stringify(data),
   }),
+  deleteAccount: () => request<{ message: string }>(`${BASE}/users/me`, { method: 'DELETE' }),
 }
 
 // ---- Shows ----

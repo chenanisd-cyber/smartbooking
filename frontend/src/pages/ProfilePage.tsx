@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { authApi } from '../services/api'
 import './AuthPages.css'
+import './ProfilePage.css'
 
 export default function ProfilePage() {
   const { user, loading } = useAuth()
@@ -15,9 +16,14 @@ export default function ProfilePage() {
     password: '',      // laissé vide = pas de changement
     confirmPassword: '',
   })
-  const [error, setError]     = useState<string | null>(null)
+  const [error,   setError]   = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [saving, setSaving]   = useState(false)
+  const [saving,  setSaving]  = useState(false)
+
+  // Delete account
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting,        setDeleting]        = useState(false)
+  const [deleteError,     setDeleteError]     = useState<string | null>(null)
 
   // Pré-remplir le formulaire avec les données actuelles
   useEffect(() => {
@@ -66,6 +72,19 @@ export default function ProfilePage() {
       setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await authApi.deleteAccount()
+      await logout()
+      navigate('/')
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : 'Erreur lors de la suppression')
+      setDeleting(false)
     }
   }
 
@@ -162,7 +181,51 @@ export default function ProfilePage() {
             {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
           </button>
         </form>
+
+        {/* Danger zone */}
+        <div className="danger-zone">
+          <p className="danger-zone-title">Zone dangereuse</p>
+          <p className="danger-zone-text">
+            La suppression de votre compte est irréversible. Toutes vos réservations et avis seront également supprimés.
+          </p>
+          <button
+            className="btn btn-danger"
+            onClick={() => { setShowDeleteModal(true); setDeleteError(null) }}
+          >
+            Supprimer mon compte
+          </button>
+        </div>
       </div>
+
+      {/* Confirmation modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => !deleting && setShowDeleteModal(false)}>
+          <div className="modal-box card" onClick={e => e.stopPropagation()}>
+            <h2 className="modal-title">Supprimer mon compte</h2>
+            <p className="modal-text">
+              Êtes-vous sûr de vouloir supprimer définitivement votre compte ?<br />
+              Cette action est <strong>irréversible</strong>.
+            </p>
+            {deleteError && <div className="alert alert-error">{deleteError}</div>}
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              >
+                Annuler
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+              >
+                {deleting ? 'Suppression…' : 'Oui, supprimer mon compte'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

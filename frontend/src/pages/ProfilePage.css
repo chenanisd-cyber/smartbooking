@@ -1,0 +1,64 @@
+/* ---- Danger zone ---- */
+.danger-zone {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius);
+  background: #fff5f5;
+}
+.danger-zone-title {
+  font-weight: 600;
+  color: #dc2626;
+  margin-bottom: .4rem;
+}
+.danger-zone-text {
+  font-size: .85rem;
+  color: var(--muted);
+  margin-bottom: .9rem;
+}
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: .5rem 1.1rem;
+  border-radius: var(--radius);
+  font-size: .9rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-danger:disabled { opacity: .6; cursor: default; }
+
+/* ---- Modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+.modal-box {
+  width: 100%;
+  max-width: 440px;
+  padding: 2rem;
+}
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .75rem;
+}
+.modal-text {
+  font-size: .92rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: flex-end;
+}
