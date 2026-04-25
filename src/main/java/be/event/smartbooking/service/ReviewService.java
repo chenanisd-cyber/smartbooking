@@ -4,6 +4,7 @@ import be.event.smartbooking.dto.ReviewRequest;
 import be.event.smartbooking.model.Review;
 import be.event.smartbooking.model.Show;
 import be.event.smartbooking.model.User;
+import be.event.smartbooking.model.enumeration.ReviewType;
 import be.event.smartbooking.repository.ReservationRepository;
 import be.event.smartbooking.repository.ReviewRepository;
 import be.event.smartbooking.repository.ShowRepository;
@@ -35,14 +36,24 @@ public class ReviewService {
         Show show = showRepository.findById(req.showId())
             .orElseThrow(() -> new RuntimeException("Show not found: " + req.showId()));
 
-        // Only users who have a reservation for this show can review it
-        boolean hasReservation = reservationRepository
-            .findByUserIdOrderByCreatedAtDesc(user.getId())
-            .stream()
-            .anyMatch(r -> r.getRepresentation().getShow().getId().equals(req.showId()));
+        boolean isPress = user.getRoles().stream().anyMatch(r -> r.getName().equals("press"));
 
-        if (!hasReservation) {
-            throw new IllegalArgumentException("You can only review shows you have booked");
+        if (isPress) {
+            // Press critics can review any confirmed show without a reservation
+            review.setReviewType(ReviewType.PRESS_REVIEW);
+            if (req.articleUrl() != null && !req.articleUrl().isBlank()) {
+                review.setArticleUrl(req.articleUrl());
+            }
+        } else {
+            // Members must have a reservation for the show
+            boolean hasReservation = reservationRepository
+                .findByUserIdOrderByCreatedAtDesc(user.getId())
+                .stream()
+                .anyMatch(r -> r.getRepresentation().getShow().getId().equals(req.showId()));
+            if (!hasReservation) {
+                throw new IllegalArgumentException("You can only review shows you have booked");
+            }
+            review.setReviewType(ReviewType.MEMBER_REVIEW);
         }
 
         // One review per user per show
@@ -50,7 +61,6 @@ public class ReviewService {
             throw new IllegalArgumentException("You have already reviewed this show");
         }
 
-        Review review = new Review();
         review.setUser(user);
         review.setShow(show);
         review.setComment(req.comment());

@@ -1,19 +1,29 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, FormEvent } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { showApi, reviewApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import type { Show, Review } from '../types/models'
 import StarRating from '../components/ui/StarRating'
+import StarRatingInput from '../components/ui/StarRatingInput'
 import './ShowDetailPage.css'
 
 export default function ShowDetailPage() {
   const { slug } = useParams<{ slug: string }>()
-  const { isMember } = useAuth()
+  const { user, isMember, isPress } = useAuth()
 
   const [show, setShow] = useState<Show | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Press review form
+  const [pressComment,    setPressComment]    = useState('')
+  const [pressStars,      setPressStars]      = useState(5)
+  const [pressUrl,        setPressUrl]        = useState('')
+  const [pressSubmitting, setPressSubmitting] = useState(false)
+  const [pressError,      setPressError]      = useState<string | null>(null)
+  const [pressSuccess,    setPressSuccess]    = useState<string | null>(null)
+  const [showPressForm,   setShowPressForm]   = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -40,9 +50,30 @@ export default function ShowDetailPage() {
   const formatTime = (dt: string) =>
     new Date(dt).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
 
-  const avgStars = reviews.length
-    ? (reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1)
+  const memberReviews = reviews.filter(r => r.reviewType === 'MEMBER_REVIEW')
+  const pressReviews  = reviews.filter(r => r.reviewType === 'PRESS_REVIEW')
+  const alreadyReviewed = reviews.some(r => r.userLogin === user?.login)
+
+  const avgStars = memberReviews.length
+    ? (memberReviews.reduce((s, r) => s + r.stars, 0) / memberReviews.length).toFixed(1)
     : null
+
+  const handlePressSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!show) return
+    setPressError(null)
+    setPressSubmitting(true)
+    try {
+      await reviewApi.create({ showId: show.id, comment: pressComment, stars: pressStars, articleUrl: pressUrl || undefined })
+      setPressSuccess('Critique envoyée ! Elle sera visible après validation par l\'admin.')
+      setShowPressForm(false)
+      setPressComment(''); setPressUrl(''); setPressStars(5)
+    } catch (err: unknown) {
+      setPressError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi')
+    } finally {
+      setPressSubmitting(false)
+    }
+  }
 
   return (
     <div className="container">
@@ -136,18 +167,101 @@ export default function ShowDetailPage() {
         )}
       </section>
 
-      {/* Reviews */}
+      {/* Press reviews */}
+      {(pressReviews.length > 0 || isPress) && (
+        <section className="show-section">
+          <h2 className="show-section-title">
+            Critiques de presse
+            {pressReviews.length > 0 && (
+              <span className="badge badge-blue" style={{ marginLeft: '.75rem' }}>{pressReviews.length}</span>
+            )}
+          </h2>
+
+          {pressReviews.length === 0 && (
+            <p style={{ color: 'var(--muted)' }}>Aucune critique de presse pour ce spectacle.</p>
+          )}
+
+          <div className="reviews-list">
+            {pressReviews.map(r => (
+              <div key={r.id} className="review-card review-card--press card">
+                <div className="review-header">
+                  <span className="press-badge">✍️ Critique de presse</span>
+                  <span className="review-user">{r.userLogin}</span>
+                  <StarRating stars={r.stars} />
+                  <span className="review-date">{new Date(r.createdAt).toLocaleDateString('fr-BE')}</span>
+                </div>
+                <p className="review-comment">{r.comment}</p>
+                {r.articleUrl && (
+                  <a className="press-article-link" href={r.articleUrl} target="_blank" rel="noopener noreferrer">
+                    Lire l'article complet →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Press review form */}
+          {isPress && !alreadyReviewed && (
+            <div style={{ marginTop: '1rem' }}>
+              {pressSuccess && <div className="alert alert-success">{pressSuccess}</div>}
+              {!showPressForm ? (
+                <button className="btn btn-outline btn-sm" onClick={() => setShowPressForm(true)}>
+                  ✍️ Soumettre une critique de presse
+                </button>
+              ) : (
+                <form onSubmit={handlePressSubmit} className="press-form card">
+                  <h3 style={{ marginBottom: '.75rem', fontSize: '1rem' }}>Votre critique</h3>
+                  {pressError && <div className="alert alert-error">{pressError}</div>}
+                  <div className="review-form-stars" style={{ marginBottom: '.75rem' }}>
+                    <span style={{ fontSize: '.88rem', color: 'var(--muted)' }}>Note :</span>
+                    <StarRatingInput value={pressStars} onChange={setPressStars} />
+                  </div>
+                  <textarea
+                    className="form-control"
+                    placeholder="Votre critique…"
+                    value={pressComment}
+                    onChange={e => setPressComment(e.target.value)}
+                    rows={4}
+                    required
+                    style={{ marginBottom: '.75rem' }}
+                  />
+                  <input
+                    className="form-control"
+                    type="url"
+                    placeholder="URL de l'article (optionnel)"
+                    value={pressUrl}
+                    onChange={e => setPressUrl(e.target.value)}
+                    style={{ marginBottom: '.75rem' }}
+                  />
+                  <div className="review-form-actions">
+                    <button className="btn btn-primary btn-sm" type="submit" disabled={pressSubmitting || !pressComment.trim()}>
+                      {pressSubmitting ? 'Envoi…' : 'Envoyer la critique'}
+                    </button>
+                    <button className="btn btn-outline btn-sm" type="button" onClick={() => setShowPressForm(false)}>
+                      Annuler
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Member reviews */}
       <section className="show-section">
         <h2 className="show-section-title">
           Avis des spectateurs
-          {reviews.length > 0 && <span className="badge badge-blue" style={{ marginLeft: '.75rem' }}>{reviews.length}</span>}
+          {memberReviews.length > 0 && (
+            <span className="badge badge-blue" style={{ marginLeft: '.75rem' }}>{memberReviews.length}</span>
+          )}
         </h2>
 
-        {reviews.length === 0 ? (
+        {memberReviews.length === 0 ? (
           <p style={{ color: 'var(--muted)' }}>Aucun avis pour ce spectacle.</p>
         ) : (
           <div className="reviews-list">
-            {reviews.map(r => (
+            {memberReviews.map(r => (
               <div key={r.id} className="review-card card">
                 <div className="review-header">
                   <span className="review-user">👤 {r.userLogin}</span>

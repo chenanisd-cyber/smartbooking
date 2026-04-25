@@ -1,6 +1,7 @@
 package be.event.smartbooking.dto;
 
 import be.event.smartbooking.model.Review;
+import be.event.smartbooking.model.enumeration.ReviewType;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +13,8 @@ public record ReviewDto(
     String comment,
     int stars,
     boolean validated,
+    ReviewType reviewType,
+    String articleUrl,
     LocalDateTime createdAt
 ) {
     public static ReviewDto from(Review r) {
@@ -23,6 +26,8 @@ public record ReviewDto(
             r.getComment(),
             r.getStars(),
             r.isValidated(),
+            r.getReviewType(),
+            r.getArticleUrl(),
             r.getCreatedAt()
         );
     }

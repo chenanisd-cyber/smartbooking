@@ -181,3 +181,38 @@
     align-items: flex-start;
   }
 }
+
+/* ---- Press reviews ---- */
+.review-card--press {
+  border-left: 3px solid #7c3aed;
+  background: #faf5ff;
+}
+.press-badge {
+  font-size: .78rem;
+  font-weight: 600;
+  color: #7c3aed;
+  background: #ede9fe;
+  padding: .15rem .5rem;
+  border-radius: 999px;
+}
+.press-article-link {
+  display: inline-block;
+  margin-top: .5rem;
+  font-size: .85rem;
+  color: #7c3aed;
+  text-decoration: underline;
+}
+.press-article-link:hover { color: #5b21b6; }
+.press-form {
+  padding: 1.25rem;
+  margin-top: .75rem;
+}
+.review-form-stars {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.review-form-actions {
+  display: flex;
+  gap: .5rem;
+}

@@ -9,6 +9,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   isAdmin: boolean
   isMember: boolean
+  isPress: boolean
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -36,11 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  const isAdmin = user?.roles.includes('admin') ?? false
+  const isAdmin  = user?.roles.includes('admin') ?? false
+  const isPress  = user?.roles.includes('press') ?? false
   const isMember = user !== null
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isMember }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isMember, isPress }}>
       {children}
     </AuthContext.Provider>
   )
