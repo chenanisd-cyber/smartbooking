@@ -19,6 +19,7 @@ import AdminArtists from './pages/admin/AdminArtists'
 import AdminLocations from './pages/admin/AdminLocations'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminReviews from './pages/admin/AdminReviews'
+import ProducerStatsPage from './pages/ProducerStatsPage'
 
 const AdminHome = () => <div style={{ color: 'var(--muted)' }}>Sélectionnez une section dans le menu.</div>
 
@@ -47,6 +48,7 @@ export default function App() {
               <Route path="/reservation/:repId"  element={<ReservationPage />} />
               <Route path="/forgot-password"     element={<ForgotPasswordPage />} />
               <Route path="/reset-password"      element={<ResetPasswordPage />} />
+              <Route path="/producer/stats"      element={<ProducerStatsPage />} />
 
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index          element={<AdminHome />} />

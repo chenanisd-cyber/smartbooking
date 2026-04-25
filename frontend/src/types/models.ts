@@ -87,6 +87,32 @@ export interface Reservation {
   createdAt: string
 }
 
+export interface RepresentationStats {
+  id: number
+  dateTime: string
+  locationName: string | null
+  capacity: number
+  confirmedSeats: number
+  revenue: number
+  fillRate: number
+}
+
+export interface ShowStats {
+  id: number
+  title: string
+  slug: string
+  totalConfirmedSeats: number
+  totalRevenue: number
+  representations: RepresentationStats[]
+}
+
+export interface ProducerStats {
+  totalShows: number
+  totalConfirmedSeats: number
+  totalRevenue: number
+  shows: ShowStats[]
+}
+
 export interface Review {
   id: number
   userLogin: string

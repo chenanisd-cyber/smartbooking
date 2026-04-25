@@ -10,6 +10,7 @@ interface AuthContextType {
   isAdmin: boolean
   isMember: boolean
   isPress: boolean
+  isProducer: boolean
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -37,12 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  const isAdmin  = user?.roles.includes('admin') ?? false
-  const isPress  = user?.roles.includes('press') ?? false
-  const isMember = user !== null
+  const isAdmin    = user?.roles.includes('admin')    ?? false
+  const isPress    = user?.roles.includes('press')    ?? false
+  const isProducer = user?.roles.includes('producer') ?? false
+  const isMember   = user !== null
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isMember, isPress }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isMember, isPress, isProducer }}>
       {children}
     </AuthContext.Provider>
   )
