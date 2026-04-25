@@ -34,6 +34,11 @@ export default function Header() {
               Statistiques
             </NavLink>
           )}
+          {(isProducer || isAdmin) && (
+            <NavLink to="/producer/reviews" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+              Modération
+            </NavLink>
+          )}
           {isAdmin && (
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
               Administration
