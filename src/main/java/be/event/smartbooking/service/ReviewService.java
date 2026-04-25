@@ -38,6 +38,8 @@ public class ReviewService {
 
         boolean isPress = user.getRoles().stream().anyMatch(r -> r.getName().equals("press"));
 
+        Review review = new Review();
+
         if (isPress) {
             // Press critics can review any confirmed show without a reservation
             review.setReviewType(ReviewType.PRESS_REVIEW);
