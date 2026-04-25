@@ -65,6 +65,17 @@ public class UserController {
         }
     }
 
+    // DELETE /api/users/me — logged-in user deletes own account
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteSelf(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            userService.deleteSelf(userDetails.getUsername());
+            return ResponseEntity.ok(Map.of("message", "Compte supprimé avec succès."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // ---- Admin endpoints ----
 
     // GET /api/users — all users
