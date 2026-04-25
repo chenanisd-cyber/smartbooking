@@ -1,4 +1,4 @@
-import type { Artist, ArtistType, Location, Locality, Show, Reservation, Review, User } from '../types/models'
+import type { Artist, ArtistType, Location, Locality, Show, Reservation, Review, User, PageResponse } from '../types/models'
 
 const BASE = '/api'
 
@@ -43,7 +43,24 @@ export const authApi = {
 
 // ---- Shows ----
 export const showApi = {
-  getAll: () => request<Show[]>(`${BASE}/shows`),
+  getAll: (params?: {
+    search?: string
+    localityId?: number
+    locationId?: number
+    sort?: string
+    page?: number
+    size?: number
+  }) => {
+    const q = new URLSearchParams()
+    if (params?.search)                     q.set('search',     params.search)
+    if (params?.localityId != null)         q.set('localityId', String(params.localityId))
+    if (params?.locationId != null)         q.set('locationId', String(params.locationId))
+    if (params?.sort)                       q.set('sort',       params.sort)
+    if (params?.page      != null)          q.set('page',       String(params.page))
+    if (params?.size      != null)          q.set('size',       String(params.size))
+    const qs = q.toString()
+    return request<PageResponse<Show>>(`${BASE}/shows${qs ? '?' + qs : ''}`)
+  },
   getAllAdmin: () => request<Show[]>(`${BASE}/shows/admin`),
   getById: (id: number) => request<Show>(`${BASE}/shows/${id}`),
   getBySlug: (slug: string) => request<Show>(`${BASE}/shows/slug/${slug}`),

@@ -2,6 +2,7 @@ package be.event.smartbooking.api.controller;
 
 import be.event.smartbooking.dto.ShowDto;
 import be.event.smartbooking.service.ShowService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,10 +22,18 @@ public class ShowController {
         this.showService = showService;
     }
 
-    // Public — confirmed shows only
+    // Public — confirmed shows, paginated + filtered + sorted
     @GetMapping
-    public List<ShowDto> getPublic() {
-        return showService.findConfirmed().stream().map(ShowDto::from).toList();
+    public Page<ShowDto> getPublic(
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) Long localityId,
+        @RequestParam(required = false) Long locationId,
+        @RequestParam(defaultValue = "newest") String sort,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return showService.findConfirmedPaged(search, localityId, locationId, sort, page, size)
+            .map(ShowDto::from);
     }
 
     // Admin — all shows (confirmed + drafts)
