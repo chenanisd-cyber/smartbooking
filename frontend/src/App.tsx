@@ -11,6 +11,8 @@ import ProfilePage from './pages/ProfilePage'
 import MyBookingsPage from './pages/MyBookingsPage'
 import ReservationPage from './pages/ReservationPage'
 import NotFoundPage from './pages/NotFoundPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminShows from './pages/admin/AdminShows'
 import AdminArtists from './pages/admin/AdminArtists'
@@ -42,7 +44,9 @@ export default function App() {
               <Route path="/register"           element={<RegisterPage />} />
               <Route path="/profile"            element={<ProfilePage />} />
               <Route path="/my-bookings"        element={<MyBookingsPage />} />
-              <Route path="/reservation/:repId" element={<ReservationPage />} />
+              <Route path="/reservation/:repId"  element={<ReservationPage />} />
+              <Route path="/forgot-password"     element={<ForgotPasswordPage />} />
+              <Route path="/reset-password"      element={<ResetPasswordPage />} />
 
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index          element={<AdminHome />} />
