@@ -74,6 +74,10 @@ export const showApi = {
   confirm: (id: number) => request<Show>(`${BASE}/shows/${id}/confirm`, { method: 'PUT' }),
   revoke: (id: number) => request<Show>(`${BASE}/shows/${id}/revoke`, { method: 'PUT' }),
   delete: (id: number) => request<void>(`${BASE}/shows/${id}`, { method: 'DELETE' }),
+  addCollaborator: (showId: number, artistId: number) =>
+    request<Show>(`${BASE}/shows/${showId}/collaborators/${artistId}`, { method: 'POST' }),
+  removeCollaborator: (showId: number, artistId: number) =>
+    request<Show>(`${BASE}/shows/${showId}/collaborators/${artistId}`, { method: 'DELETE' }),
 }
 
 // ---- Artists ----

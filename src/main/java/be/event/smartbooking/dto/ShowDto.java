@@ -13,6 +13,7 @@ public record ShowDto(
     String imagePath,
     boolean isConfirmed,
     ArtistDto artist,
+    List<ArtistDto> collaborators,
     List<RepresentationDto> representations,
     LocalDateTime createdAt
 ) {
@@ -25,6 +26,7 @@ public record ShowDto(
             show.getImagePath(),
             show.isConfirmed(),
             show.getArtist() != null ? ArtistDto.from(show.getArtist()) : null,
+            show.getCollaborators().stream().map(ArtistDto::from).toList(),
             show.getRepresentations().stream().map(RepresentationDto::from).toList(),
             show.getCreatedAt()
         );

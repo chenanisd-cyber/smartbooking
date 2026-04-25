@@ -20,6 +20,9 @@ export default function AdminShows() {
   // Panneau déroulant des dates par spectacle
   const [expanded, setExpanded]   = useState<number | null>(null)
 
+  // Artiste sélectionné pour ajout de collaborateur (par show id)
+  const [collabSelect, setCollabSelect] = useState<Record<number, string>>({})
+
   const load = () => {
     Promise.all([showApi.getAllAdmin(), artistApi.getAll(), locationApi.getAll()])
       .then(([s, a, l]) => { setShows(s); setArtists(a); setLocations(l) })
@@ -41,6 +44,19 @@ export default function AdminShows() {
   const handleDeleteRep = async (repId: number) => {
     if (!confirm('Supprimer cette représentation ?')) return
     await representationApi.delete(repId)
+    load()
+  }
+
+  const handleAddCollaborator = async (showId: number) => {
+    const artistId = collabSelect[showId]
+    if (!artistId) return
+    await showApi.addCollaborator(showId, Number(artistId))
+    setCollabSelect(prev => ({ ...prev, [showId]: '' }))
+    load()
+  }
+
+  const handleRemoveCollaborator = async (showId: number, artistId: number) => {
+    await showApi.removeCollaborator(showId, artistId)
     load()
   }
 
@@ -88,35 +104,83 @@ export default function AdminShows() {
                 </div>
               </div>
 
-              {/* Panneau des représentations */}
+              {/* Panneau déroulant */}
               {expanded === s.id && (
-                <div style={{ borderTop: '1px solid var(--border)', padding: '1rem', background: 'var(--surface)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
-                    <span style={{ fontSize: '.85rem', fontWeight: 600, color: 'var(--muted)' }}>Représentations</span>
-                    <button className="btn btn-primary btn-sm" onClick={() => setRepModal(s.id)}>
-                      + Ajouter une date
-                    </button>
+                <div style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+
+                  {/* Représentations */}
+                  <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
+                      <span style={{ fontSize: '.85rem', fontWeight: 600, color: 'var(--muted)' }}>Représentations</span>
+                      <button className="btn btn-primary btn-sm" onClick={() => setRepModal(s.id)}>
+                        + Ajouter une date
+                      </button>
+                    </div>
+
+                    {s.representations.length === 0 ? (
+                      <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Aucune date programmée.</p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+                        {s.representations
+                          .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime())
+                          .map(rep => (
+                            <div key={rep.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '.85rem', flexWrap: 'wrap' }}>
+                              <span>📅 {formatDate(rep.dateTime)}</span>
+                              {rep.location && <span style={{ color: 'var(--muted)' }}>📍 {rep.location.name}</span>}
+                              <span style={{ color: 'var(--success)' }}>{rep.availableSeats} places</span>
+                              <span style={{ color: 'var(--muted)' }}>
+                                {rep.prices.map(p => `${p.type} ${p.amount}€`).join(' · ')}
+                              </span>
+                              <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRep(rep.id)}>✕</button>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
 
-                  {s.representations.length === 0 ? (
-                    <p style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Aucune date programmée.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
-                      {s.representations
-                        .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime())
-                        .map(rep => (
-                          <div key={rep.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '.85rem', flexWrap: 'wrap' }}>
-                            <span>📅 {formatDate(rep.dateTime)}</span>
-                            {rep.location && <span style={{ color: 'var(--muted)' }}>📍 {rep.location.name}</span>}
-                            <span style={{ color: 'var(--success)' }}>{rep.availableSeats} places</span>
-                            <span style={{ color: 'var(--muted)' }}>
-                              {rep.prices.map(p => `${p.type} ${p.amount}€`).join(' · ')}
-                            </span>
-                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRep(rep.id)}>✕</button>
-                          </div>
-                        ))}
+                  {/* Collaborateurs */}
+                  <div style={{ padding: '1rem' }}>
+                    <span style={{ fontSize: '.85rem', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '.6rem' }}>
+                      Artistes collaborateurs
+                    </span>
+
+                    {/* Liste actuelle */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.4rem', marginBottom: '.75rem' }}>
+                      {s.collaborators && s.collaborators.length > 0 ? s.collaborators.map(c => (
+                        <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '.3rem',
+                          background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '999px',
+                          padding: '.2rem .6rem', fontSize: '.8rem' }}>
+                          {c.name}
+                          <button onClick={() => handleRemoveCollaborator(s.id, c.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)',
+                              lineHeight: 1, padding: '0 .1rem', fontSize: '.85rem' }}>✕</button>
+                        </span>
+                      )) : (
+                        <span style={{ color: 'var(--muted)', fontSize: '.82rem' }}>Aucun collaborateur.</span>
+                      )}
                     </div>
-                  )}
+
+                    {/* Ajout */}
+                    <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+                      <select
+                        className="form-control"
+                        style={{ flex: 1, fontSize: '.85rem', padding: '.3rem .5rem' }}
+                        value={collabSelect[s.id] ?? ''}
+                        onChange={e => setCollabSelect(prev => ({ ...prev, [s.id]: e.target.value }))}
+                      >
+                        <option value="">— Choisir un artiste —</option>
+                        {artists
+                          .filter(a => a.id !== s.artist?.id && !s.collaborators?.some(c => c.id === a.id))
+                          .map(a => <option key={a.id} value={a.id}>{a.name}</option>)
+                        }
+                      </select>
+                      <button className="btn btn-outline btn-sm"
+                        disabled={!collabSelect[s.id]}
+                        onClick={() => handleAddCollaborator(s.id)}>
+                        + Ajouter
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

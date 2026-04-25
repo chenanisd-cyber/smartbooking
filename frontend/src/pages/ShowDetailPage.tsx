@@ -100,6 +100,17 @@ export default function ShowDetailPage() {
             </p>
           )}
 
+          {show.collaborators && show.collaborators.length > 0 && (
+            <p className="show-detail-artist">
+              <span style={{ fontSize: '.8rem', color: 'var(--muted)', marginRight: '.4rem' }}>
+                Avec :
+              </span>
+              {show.collaborators.map(c => (
+                <span key={c.id} className="badge badge-grey" style={{ marginRight: '.3rem' }}>{c.name}</span>
+              ))}
+            </p>
+          )}
+
           {avgStars && (
             <p className="show-detail-rating">
               <StarRating stars={Math.round(Number(avgStars))} />

@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "shows")
@@ -36,6 +38,14 @@ public class Show {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "artist_id")
     private Artist artist;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "show_artists",
+        joinColumns = @JoinColumn(name = "show_id"),
+        inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
+    private Set<Artist> collaborators = new HashSet<>();
 
     @OneToMany(mappedBy = "show", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Representation> representations = new ArrayList<>();
