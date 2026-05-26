@@ -50,6 +50,11 @@ public class Show {
     @OneToMany(mappedBy = "show", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Representation> representations = new ArrayList<>();
 
+    // Producteur qui produit ce spectacle (peut être null pour les anciennes données)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "producer_id")
+    private User producer;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }

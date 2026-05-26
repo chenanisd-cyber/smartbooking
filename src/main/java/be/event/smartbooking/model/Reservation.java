@@ -1,13 +1,14 @@
 package be.event.smartbooking.model;
 
 import be.event.smartbooking.model.enumeration.ReservationStatus;
-import be.event.smartbooking.model.enumeration.TypePrice;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "reservations")
@@ -22,19 +23,8 @@ public class Reservation {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "representation_id", nullable = false)
-    private Representation representation;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "price_type", nullable = false)
-    private TypePrice priceType;
-
-    @Column(nullable = false)
-    private int quantity = 1;
-
-    @Column(name = "total_amount", nullable = false)
-    private BigDecimal totalAmount;
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReservationLine> lines = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -45,4 +35,17 @@ public class Reservation {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Méthode helper pour calculer le total du panier
+    public BigDecimal getTotalAmount() {
+        return lines.stream()
+            .map(ReservationLine::getLineTotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    // Méthode helper pour ajouter une ligne en maintenant la relation bidirectionnelle
+    public void addLine(ReservationLine line) {
+        lines.add(line);
+        line.setReservation(this);
+    }
 }

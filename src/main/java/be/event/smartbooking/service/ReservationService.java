@@ -4,6 +4,7 @@ import be.event.smartbooking.dto.ReservationRequest;
 import be.event.smartbooking.model.Price;
 import be.event.smartbooking.model.Representation;
 import be.event.smartbooking.model.Reservation;
+import be.event.smartbooking.model.ReservationLine;
 import be.event.smartbooking.model.User;
 import be.event.smartbooking.model.enumeration.ReservationStatus;
 import be.event.smartbooking.repository.RepresentationRepository;
@@ -13,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReservationService {
@@ -35,36 +39,75 @@ public class ReservationService {
             .orElseThrow(() -> new RuntimeException("Reservation not found: " + id));
     }
 
-    // Step 1 — create a PENDING reservation and decrement seats (holds the seats)
+    // Step 1 — create a PENDING reservation (panier) and decrement seats on all lines
     @Transactional
     public Reservation createPending(ReservationRequest req, String login) {
-        Representation rep = representationRepository.findById(req.representationId())
-            .orElseThrow(() -> new RuntimeException("Representation not found: " + req.representationId()));
-
-        if (rep.getAvailableSeats() < req.quantity()) {
-            throw new IllegalArgumentException("Not enough seats. Available: " + rep.getAvailableSeats());
-        }
-
-        Price price = rep.getPrices().stream()
-            .filter(p -> p.getType() == req.priceType())
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("Price type " + req.priceType() + " not available"));
-
         User user = userRepository.findByLogin(login)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Reserve seats immediately to prevent over-booking
-        rep.setAvailableSeats(rep.getAvailableSeats() - req.quantity());
-        representationRepository.save(rep);
+        // Validation : on agrège d'abord les quantités par représentation pour vérifier
+        // qu'on ne tente pas de réserver plus de places que disponibles cumulées.
+        // Exemple : si même rep apparaît 2 fois (rare mais possible si l'utilisateur ajoute
+        // 2 lignes pour la même rep avec 2 tarifs différents).
+        Map<Long, Integer> totalQtyByRep = new HashMap<>();
+        for (var line : req.lines()) {
+            totalQtyByRep.merge(line.representationId(), line.quantity(), Integer::sum);
+        }
 
+        // Vérifier les places disponibles sur chaque représentation
+        Map<Long, Representation> repsCache = new HashMap<>();
+        for (var entry : totalQtyByRep.entrySet()) {
+            Long repId = entry.getKey();
+            int totalQty = entry.getValue();
+
+            Representation rep = representationRepository.findById(repId)
+                .orElseThrow(() -> new RuntimeException("Representation not found: " + repId));
+
+            if (rep.getAvailableSeats() < totalQty) {
+                throw new IllegalArgumentException(
+                    "Pas assez de places pour la représentation du " +
+                    rep.getDateTime() + ". Disponibles : " + rep.getAvailableSeats() +
+                    ", demandées : " + totalQty);
+            }
+            repsCache.put(repId, rep);
+        }
+
+        // Créer la réservation (panier)
         Reservation reservation = new Reservation();
         reservation.setUser(user);
-        reservation.setRepresentation(rep);
-        reservation.setPriceType(req.priceType());
-        reservation.setQuantity(req.quantity());
-        reservation.setTotalAmount(price.getAmount().multiply(BigDecimal.valueOf(req.quantity())));
         reservation.setStatus(ReservationStatus.PENDING);
 
+        // Créer les lignes, décrémenter les places
+        for (var lineReq : req.lines()) {
+            Representation rep = repsCache.get(lineReq.representationId());
+
+            // Récupérer le prix correspondant au type demandé
+            Price price = rep.getPrices().stream()
+                .filter(p -> p.getType() == lineReq.priceType())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Tarif " + lineReq.priceType() + " non disponible pour la représentation " + rep.getId()));
+
+            // Décrémenter les places (pré-réservation pendant le paiement)
+            rep.setAvailableSeats(rep.getAvailableSeats() - lineReq.quantity());
+
+            // Créer la ligne
+            ReservationLine line = new ReservationLine();
+            line.setRepresentation(rep);
+            line.setPriceType(lineReq.priceType());
+            line.setQuantity(lineReq.quantity());
+            line.setUnitPrice(price.getAmount());
+            line.setLineTotal(price.getAmount().multiply(BigDecimal.valueOf(lineReq.quantity())));
+
+            reservation.addLine(line);
+        }
+
+        // Sauvegarder les représentations modifiées
+        for (Representation rep : repsCache.values()) {
+            representationRepository.save(rep);
+        }
+
+        // Sauvegarder le panier + les lignes en cascade
         return reservationRepository.save(reservation);
     }
 
@@ -87,39 +130,37 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
+    // Member — cancel own reservation (panier entier, remet toutes les places dans le pool)
     @Transactional
-    public Reservation create(ReservationRequest req, String login) {
-        Representation rep = representationRepository.findById(req.representationId())
-            .orElseThrow(() -> new RuntimeException("Representation not found: " + req.representationId()));
+    public Reservation cancel(Long reservationId, String login) {
+        Reservation reservation = findById(reservationId);
 
-        // Check enough seats available
-        if (rep.getAvailableSeats() < req.quantity()) {
-            throw new IllegalArgumentException(
-                "Not enough seats. Available: " + rep.getAvailableSeats());
+        // Vérifier ownership
+        if (!reservation.getUser().getLogin().equals(login)) {
+            throw new IllegalArgumentException("Vous ne pouvez annuler que vos propres réservations.");
         }
 
-        // Find price for the requested type
-        Price price = rep.getPrices().stream()
-            .filter(p -> p.getType() == req.priceType())
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException(
-                "Price type " + req.priceType() + " not available for this representation"));
+        // Pas annulable si déjà annulée
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new IllegalArgumentException("Cette réservation est déjà annulée.");
+        }
 
-        User user = userRepository.findByLogin(login)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        // Vérifier qu'aucune ligne ne concerne une représentation passée
+        boolean anyPast = reservation.getLines().stream()
+            .anyMatch(l -> l.getRepresentation().getDateTime().isBefore(LocalDateTime.now()));
+        if (anyPast) {
+            throw new IllegalArgumentException("Impossible d'annuler : au moins une représentation est déjà passée.");
+        }
 
-        // Decrement available seats
-        rep.setAvailableSeats(rep.getAvailableSeats() - req.quantity());
-        representationRepository.save(rep);
+        // Remettre les places dans le pool pour chaque ligne
+        for (ReservationLine line : reservation.getLines()) {
+            Representation rep = line.getRepresentation();
+            rep.setAvailableSeats(rep.getAvailableSeats() + line.getQuantity());
+            representationRepository.save(rep);
+        }
 
-        // Create reservation
-        Reservation reservation = new Reservation();
-        reservation.setUser(user);
-        reservation.setRepresentation(rep);
-        reservation.setPriceType(req.priceType());
-        reservation.setQuantity(req.quantity());
-        reservation.setTotalAmount(price.getAmount().multiply(BigDecimal.valueOf(req.quantity())));
-
+        // Marquer la réservation comme annulée
+        reservation.setStatus(ReservationStatus.CANCELLED);
         return reservationRepository.save(reservation);
     }
 

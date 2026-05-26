@@ -1,6 +1,6 @@
-import { useState, FormEvent } from 'react'
-import { showApi } from '../../services/api'
-import type { Show, Artist } from '../../types/models'
+import { useState, useEffect, FormEvent } from 'react'
+import { showApi, userApi } from '../../services/api'
+import type { Show, Artist, User } from '../../types/models'
 import './Modal.css'
 
 interface Props {
@@ -11,12 +11,21 @@ interface Props {
 }
 
 export default function ShowFormModal({ show, artists, onClose, onSaved }: Props) {
-  const [title, setTitle]       = useState(show?.title ?? '')
-  const [description, setDesc]  = useState(show?.description ?? '')
-  const [artistId, setArtistId] = useState<string>(show?.artist?.id?.toString() ?? '')
-  const [imageFile, setImage]   = useState<File | null>(null)
-  const [error, setError]       = useState<string | null>(null)
-  const [saving, setSaving]     = useState(false)
+  const [title, setTitle]         = useState(show?.title ?? '')
+  const [description, setDesc]    = useState(show?.description ?? '')
+  const [artistId, setArtistId]   = useState<string>(show?.artist?.id?.toString() ?? '')
+  const [producerId, setProducerId] = useState<string>(show?.producer?.id?.toString() ?? '')
+  const [imageFile, setImage]     = useState<File | null>(null)
+  const [producers, setProducers] = useState<User[]>([])
+  const [error, setError]         = useState<string | null>(null)
+  const [saving, setSaving]       = useState(false)
+
+  // Charger la liste des producteurs au montage
+  useEffect(() => {
+    userApi.getProducers()
+      .then(setProducers)
+      .catch(() => {/* silencieux : si on n'est pas admin, on n'a juste pas de sélecteur */})
+  }, [])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -28,8 +37,9 @@ export default function ShowFormModal({ show, artists, onClose, onSaved }: Props
       const fd = new FormData()
       fd.append('title', title)
       fd.append('description', description)
-      if (artistId) fd.append('artistId', artistId)
-      if (imageFile) fd.append('image', imageFile)
+      if (artistId)   fd.append('artistId', artistId)
+      if (producerId) fd.append('producerId', producerId)
+      if (imageFile)  fd.append('image', imageFile)
 
       if (show) {
         await showApi.update(show.id, fd)
@@ -80,7 +90,7 @@ export default function ShowFormModal({ show, artists, onClose, onSaved }: Props
           </div>
 
           <div className="form-group">
-            <label htmlFor="artistId">Artiste</label>
+            <label htmlFor="artistId">Artiste principal</label>
             <select
               id="artistId"
               className="form-control"
@@ -92,6 +102,26 @@ export default function ShowFormModal({ show, artists, onClose, onSaved }: Props
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="producerId">Producteur</label>
+            <select
+              id="producerId"
+              className="form-control"
+              value={producerId}
+              onChange={e => setProducerId(e.target.value)}
+            >
+              <option value="">— Aucun —</option>
+              {producers.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.firstName} {p.lastName} ({p.login})
+                </option>
+              ))}
+            </select>
+            <small style={{ color: 'var(--muted)', display: 'block', marginTop: '.25rem' }}>
+              Le producteur verra ce spectacle dans son tableau de bord et ses statistiques.
+            </small>
           </div>
 
           <div className="form-group">

@@ -71,22 +71,52 @@ export interface Show {
   artist: Artist | null
   collaborators: Artist[]
   representations: Representation[]
+  producer: User | null
   createdAt: string
 }
 
-export interface Reservation {
+// ---- Reservations (panier multi-lignes) ----
+
+export interface ReservationLine {
   id: number
+  representationId: number
   showId: number
   showTitle: string
   showSlug: string
   locationName: string | null
   dateTime: string
-  priceType: string
+  priceType: 'STANDARD' | 'VIP' | 'REDUIT' | 'PREMIUM'
   quantity: number
-  totalAmount: number
-  status: 'CONFIRMED' | 'CANCELLED'
-  createdAt: string
+  unitPrice: number
+  lineTotal: number
 }
+
+export interface Reservation {
+  id: number
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED'
+  totalAmount: number
+  createdAt: string
+  lines: ReservationLine[]
+}
+
+// ---- Cart (état local du panier avant paiement) ----
+
+export interface CartLine {
+  // Identifiant unique côté frontend (UUID ou timestamp) pour gérer add/remove
+  cartLineId: string
+  // Métadonnées affichables (snapshot au moment de l'ajout)
+  representationId: number
+  showId: number
+  showTitle: string
+  showSlug: string
+  locationName: string | null
+  dateTime: string
+  priceType: 'STANDARD' | 'VIP' | 'REDUIT' | 'PREMIUM'
+  unitPrice: number
+  quantity: number
+}
+
+// ---- Stats producteur ----
 
 export interface RepresentationStats {
   id: number

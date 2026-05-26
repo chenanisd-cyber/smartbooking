@@ -2,8 +2,10 @@ package be.event.smartbooking.service;
 
 import be.event.smartbooking.model.Artist;
 import be.event.smartbooking.model.Show;
+import be.event.smartbooking.model.User;
 import be.event.smartbooking.repository.ArtistRepository;
 import be.event.smartbooking.repository.ShowRepository;
+import be.event.smartbooking.repository.UserRepository;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,13 +27,17 @@ public class ShowService {
 
     private final ShowRepository showRepository;
     private final ArtistRepository artistRepository;
+    private final UserRepository userRepository;
 
     @Value("${upload.path}")
     private String uploadPath;
 
-    public ShowService(ShowRepository showRepository, ArtistRepository artistRepository) {
+    public ShowService(ShowRepository showRepository,
+                       ArtistRepository artistRepository,
+                       UserRepository userRepository) {
         this.showRepository = showRepository;
         this.artistRepository = artistRepository;
+        this.userRepository = userRepository;
     }
 
     // Public catalog — paginated, filtered, sorted
@@ -120,25 +126,27 @@ public class ShowService {
             .orElseThrow(() -> new RuntimeException("Show not found: " + slug));
     }
 
-    public Show create(String title, String description, Long artistId, MultipartFile image) throws IOException {
+    public Show create(String title, String description, Long artistId, Long producerId, MultipartFile image) throws IOException {
         Show show = new Show();
         show.setTitle(title);
         show.setDescription(description);
         show.setSlug(generateSlug(title));
         show.setArtist(resolveArtist(artistId));
+        show.setProducer(resolveProducer(producerId));
         if (image != null && !image.isEmpty()) {
             show.setImagePath(saveImage(image));
         }
         return showRepository.save(show);
     }
 
-    public Show update(Long id, String title, String description, Long artistId, MultipartFile image) throws IOException {
+    public Show update(Long id, String title, String description, Long artistId, Long producerId, MultipartFile image) throws IOException {
         Show show = findById(id);
         show.setTitle(title);
         show.setDescription(description);
         // Regenerate slug only if title changed
         show.setSlug(generateSlug(title));
         show.setArtist(resolveArtist(artistId));
+        show.setProducer(resolveProducer(producerId));
         if (image != null && !image.isEmpty()) {
             show.setImagePath(saveImage(image));
         }
@@ -207,6 +215,12 @@ public class ShowService {
         if (artistId == null) return null;
         return artistRepository.findById(artistId)
             .orElseThrow(() -> new RuntimeException("Artist not found: " + artistId));
+    }
+
+    private User resolveProducer(Long producerId) {
+        if (producerId == null) return null;
+        return userRepository.findById(producerId)
+            .orElseThrow(() -> new RuntimeException("Producer not found: " + producerId));
     }
 
     private String getExtension(String filename) {

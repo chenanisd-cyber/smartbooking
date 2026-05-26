@@ -3,6 +3,7 @@ package be.event.smartbooking.config;
 import be.event.smartbooking.service.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -13,7 +14,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -23,10 +29,29 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final ObjectMapper objectMapper;
+    private final AffiliateApiKeyFilter affiliateApiKeyFilter;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService, ObjectMapper objectMapper) {
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          ObjectMapper objectMapper,
+                          AffiliateApiKeyFilter affiliateApiKeyFilter) {
         this.userDetailsService = userDetailsService;
         this.objectMapper = objectMapper;
+        this.affiliateApiKeyFilter = affiliateApiKeyFilter;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(frontendUrl));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
@@ -42,6 +67,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // Disable CSRF — we use a React SPA, not HTML forms
             .csrf(csrf -> csrf.disable())
 
@@ -53,6 +79,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/payments/config").permitAll()
                 .requestMatchers("/images/**").permitAll()
+                // RSS feed — accessible aux agrégateurs externes sans auth
+                .requestMatchers("/rss/**").permitAll()
+                // API affiliée — protégée par AffiliateApiKeyFilter (header X-API-Key)
+                .requestMatchers("/api/affiliate/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/shows/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/artists/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
@@ -67,6 +97,9 @@ public class SecurityConfig {
                 // Everything else needs login
                 .anyRequest().authenticated()
             )
+
+            // Filtre custom pour authentifier l'API affiliée via header X-API-Key
+            .addFilterBefore(affiliateApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
 
             // Form login → returns JSON instead of redirecting
             .formLogin(form -> form

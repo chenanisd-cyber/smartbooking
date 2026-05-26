@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { AuthProvider } from './context/AuthContext'
+import { CartProvider } from './context/CartContext'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import HomePage from './pages/HomePage'
@@ -10,6 +11,7 @@ import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
 import MyBookingsPage from './pages/MyBookingsPage'
 import ReservationPage from './pages/ReservationPage'
+import CartPage from './pages/CartPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -21,7 +23,8 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminReviews from './pages/admin/AdminReviews'
 import AdminCsv from './pages/admin/AdminCsv'
 import ProducerStatsPage from './pages/ProducerStatsPage'
-import ProducerReviewsPage from './pages/ProducerReviewsPage'
+import CheckoutPage from './pages/CheckoutPage'
+import AffiliateDashboard from './pages/AffiliateDashboard'
 
 const AdminHome = () => <div style={{ color: 'var(--muted)' }}>Sélectionnez une section dans le menu.</div>
 
@@ -36,38 +39,42 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ScrollToTop />
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <Header />
-          <main style={{ flex: 1, padding: '2rem 0' }}>
-            <Routes>
-              <Route path="/"                   element={<HomePage />} />
-              <Route path="/shows/:slug"        element={<ShowDetailPage />} />
-              <Route path="/login"              element={<LoginPage />} />
-              <Route path="/register"           element={<RegisterPage />} />
-              <Route path="/profile"            element={<ProfilePage />} />
-              <Route path="/my-bookings"        element={<MyBookingsPage />} />
-              <Route path="/reservation/:repId"  element={<ReservationPage />} />
-              <Route path="/forgot-password"     element={<ForgotPasswordPage />} />
-              <Route path="/reset-password"      element={<ResetPasswordPage />} />
-              <Route path="/producer/stats"      element={<ProducerStatsPage />} />
-              <Route path="/producer/reviews"    element={<ProducerReviewsPage />} />
+        <CartProvider>
+          <ScrollToTop />
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <Header />
+            <main style={{ flex: 1, padding: '2rem 0' }}>
+              <Routes>
+                <Route path="/"                   element={<HomePage />} />
+                <Route path="/shows/:slug"        element={<ShowDetailPage />} />
+                <Route path="/login"              element={<LoginPage />} />
+                <Route path="/register"           element={<RegisterPage />} />
+                <Route path="/profile"            element={<ProfilePage />} />
+                <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
+                <Route path="/my-bookings"        element={<MyBookingsPage />} />
+                <Route path="/reservation/:repId" element={<ReservationPage />} />
+                <Route path="/cart"               element={<CartPage />} />
+                <Route path="/checkout/:reservationId" element={<CheckoutPage />} />
+                <Route path="/forgot-password"    element={<ForgotPasswordPage />} />
+                <Route path="/reset-password"     element={<ResetPasswordPage />} />
+                <Route path="/producer/stats"     element={<ProducerStatsPage />} />
 
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index          element={<AdminHome />} />
-                <Route path="shows"     element={<AdminShows />} />
-                <Route path="artists"   element={<AdminArtists />} />
-                <Route path="locations" element={<AdminLocations />} />
-                <Route path="users"     element={<AdminUsers />} />
-                <Route path="reviews"   element={<AdminReviews />} />
-                <Route path="csv"       element={<AdminCsv />} />
-              </Route>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index          element={<AdminHome />} />
+                  <Route path="shows"     element={<AdminShows />} />
+                  <Route path="artists"   element={<AdminArtists />} />
+                  <Route path="locations" element={<AdminLocations />} />
+                  <Route path="users"     element={<AdminUsers />} />
+                  <Route path="reviews"   element={<AdminReviews />} />
+                  <Route path="csv"       element={<AdminCsv />} />
+                </Route>
 
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   )

@@ -11,4 +11,6 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
     Optional<Show> findBySlug(String slug);
     // Public catalog: only confirmed shows
     List<Show> findByIsConfirmedTrue();
+    // Producteur : ses propres spectacles
+    List<Show> findByProducerId(Long producerId);
 }

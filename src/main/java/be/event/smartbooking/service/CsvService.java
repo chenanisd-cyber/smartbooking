@@ -43,7 +43,9 @@ public class CsvService {
     }
 
     // -------------------------------------------------------------------------
-    // EXPORT — all confirmed reservations
+    // EXPORT — toutes les lignes des réservations confirmées
+    // Une réservation = 1 ou plusieurs lignes (panier). On exporte chaque ligne
+    // sur une ligne CSV. La colonne "reservation_id" permet de regrouper.
     // -------------------------------------------------------------------------
     public byte[] exportReservations() throws IOException {
         List<Reservation> reservations = reservationRepository.findByStatus(ReservationStatus.CONFIRMED);
@@ -52,24 +54,28 @@ public class CsvService {
         try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
             // Header
             writer.writeNext(new String[]{
-                "id", "spectacle", "utilisateur", "lieu", "date_heure",
-                "type_prix", "quantite", "montant_total", "statut", "date_reservation"
+                "reservation_id", "ligne_id", "spectacle", "utilisateur", "lieu", "date_heure",
+                "type_prix", "quantite", "prix_unitaire", "total_ligne", "statut", "date_reservation"
             });
 
             for (Reservation r : reservations) {
-                var rep = r.getRepresentation();
-                writer.writeNext(new String[]{
-                    String.valueOf(r.getId()),
-                    rep.getShow().getTitle(),
-                    r.getUser().getLogin(),
-                    rep.getLocation() != null ? rep.getLocation().getName() : "",
-                    rep.getDateTime().format(DT_FMT),
-                    r.getPriceType().name(),
-                    String.valueOf(r.getQuantity()),
-                    r.getTotalAmount().toPlainString(),
-                    r.getStatus().name(),
-                    r.getCreatedAt().format(DT_FMT)
-                });
+                for (ReservationLine line : r.getLines()) {
+                    Representation rep = line.getRepresentation();
+                    writer.writeNext(new String[]{
+                        String.valueOf(r.getId()),
+                        String.valueOf(line.getId()),
+                        rep.getShow().getTitle(),
+                        r.getUser().getLogin(),
+                        rep.getLocation() != null ? rep.getLocation().getName() : "",
+                        rep.getDateTime().format(DT_FMT),
+                        line.getPriceType().name(),
+                        String.valueOf(line.getQuantity()),
+                        line.getUnitPrice().toPlainString(),
+                        line.getLineTotal().toPlainString(),
+                        r.getStatus().name(),
+                        r.getCreatedAt().format(DT_FMT)
+                    });
+                }
             }
         }
         return out.toByteArray();

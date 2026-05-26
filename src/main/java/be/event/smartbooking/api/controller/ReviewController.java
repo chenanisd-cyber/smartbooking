@@ -31,15 +31,15 @@ public class ReviewController {
             .stream().map(ReviewDto::from).toList();
     }
 
-    // Admin & Producer — reviews waiting for validation
+    // Admin uniquement — avis en attente de validation
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<ReviewDto> getPending() {
         return reviewService.findPending()
             .stream().map(ReviewDto::from).toList();
     }
 
-    // Member — post a review (must have a reservation for the show)
+    // Membre — doone un avis  (doit avoir une réservation pour le show)
     @PostMapping
     public ResponseEntity<?> create(
         @Valid @RequestBody ReviewRequest req,
@@ -53,16 +53,16 @@ public class ReviewController {
         }
     }
 
-    // Admin & Producer — validate a review (makes it visible publicly)
+    // Admin uniquement — valider un avis (le rend public)
     @PutMapping("/{id}/validate")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ReviewDto validate(@PathVariable Long id) {
         return ReviewDto.from(reviewService.validate(id));
     }
 
-    // Admin & Producer — delete a review
+    // Admin uniquement — supprimer un avis
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         reviewService.delete(id);
         return ResponseEntity.noContent().build();

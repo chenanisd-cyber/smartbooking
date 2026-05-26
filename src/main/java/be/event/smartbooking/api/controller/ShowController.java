@@ -55,16 +55,17 @@ public class ShowController {
         return ShowDto.from(showService.findBySlug(slug));
     }
 
-    // Admin — create show (multipart: title, description, artistId, image file)
+    // Admin — create show (multipart: title, description, artistId, producerId, image file)
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ShowDto> create(
         @RequestParam String title,
         @RequestParam(required = false) String description,
         @RequestParam(required = false) Long artistId,
+        @RequestParam(required = false) Long producerId,
         @RequestParam(required = false) MultipartFile image
     ) throws IOException {
-        ShowDto dto = ShowDto.from(showService.create(title, description, artistId, image));
+        ShowDto dto = ShowDto.from(showService.create(title, description, artistId, producerId, image));
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -76,9 +77,10 @@ public class ShowController {
         @RequestParam String title,
         @RequestParam(required = false) String description,
         @RequestParam(required = false) Long artistId,
+        @RequestParam(required = false) Long producerId,
         @RequestParam(required = false) MultipartFile image
     ) throws IOException {
-        return ShowDto.from(showService.update(id, title, description, artistId, image));
+        return ShowDto.from(showService.update(id, title, description, artistId, producerId, image));
     }
 
     // Admin — confirm show (makes it visible in public catalog)

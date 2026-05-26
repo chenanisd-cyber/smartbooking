@@ -47,11 +47,14 @@ public class ReviewService {
                 review.setArticleUrl(req.articleUrl());
             }
         } else {
-            // Members must have a reservation for the show
+            // Members must have at least one reservation line for the show
+            // Une réservation peut contenir plusieurs lignes ; il suffit qu'une ligne
+            // concerne une représentation de ce spectacle.
             boolean hasReservation = reservationRepository
                 .findByUserIdOrderByCreatedAtDesc(user.getId())
                 .stream()
-                .anyMatch(r -> r.getRepresentation().getShow().getId().equals(req.showId()));
+                .flatMap(r -> r.getLines().stream())
+                .anyMatch(line -> line.getRepresentation().getShow().getId().equals(req.showId()));
             if (!hasReservation) {
                 throw new IllegalArgumentException("You can only review shows you have booked");
             }

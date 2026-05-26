@@ -106,6 +106,13 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    // Admin — list users who have the "producer" role (for show assignment)
+    public List<User> findAllProducers() {
+        return userRepository.findAll().stream()
+            .filter(u -> u.getRoles().stream().anyMatch(r -> r.getName().equals("producer")))
+            .toList();
+    }
+
     // Admin — activate a user account
     public User activate(Long id) {
         User user = findById(id);
@@ -125,6 +132,22 @@ public class UserService {
         User user = findById(id);
         user.setApproved(true);
         user.setActive(true);
+        return userRepository.save(user);
+    }
+
+    // Admin — assigner un rôle à un utilisateur (press, affiliate, etc.)
+    public User assignRole(Long userId, String roleName) {
+        User user = findById(userId);
+        Role role = roleRepository.findByName(roleName)
+            .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+        user.getRoles().add(role);
+        return userRepository.save(user);
+    }
+
+    // Admin — retirer un rôle à un utilisateur
+    public User removeRole(Long userId, String roleName) {
+        User user = findById(userId);
+        user.getRoles().removeIf(r -> r.getName().equals(roleName));
         return userRepository.save(user);
     }
 

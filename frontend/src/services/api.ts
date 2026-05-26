@@ -108,6 +108,7 @@ export const representationApi = {
 export const reservationApi = {
   create: (data: object) => request<Reservation>(`${BASE}/reservations`, { method: 'POST', body: JSON.stringify(data) }),
   myBookings: () => request<Reservation[]>(`${BASE}/reservations/my-bookings`),
+  cancel: (id: number) => request<Reservation>(`${BASE}/reservations/${id}/cancel`, { method: 'PUT' }),
   getAll: () => request<Reservation[]>(`${BASE}/reservations`),
 }
 
@@ -131,16 +132,50 @@ export const paymentApi = {
   ),
 }
 
-// ---- Producer ----
 export const producerApi = {
-  getStats: () => request<ProducerStats>(`${BASE}/producer/stats`),
+  getStats: (producerId?: number) => {
+    const qs = producerId != null ? `?producerId=${producerId}` : ''
+    return request<ProducerStats>(`${BASE}/producer/stats${qs}`)
+  },
 }
 
 // ---- Admin users ----
 export const userApi = {
   getAll: () => request<User[]>(`${BASE}/users`),
+  getProducers: () => request<User[]>(`${BASE}/users/producers`),
   activate: (id: number) => request<User>(`${BASE}/users/${id}/activate`, { method: 'PUT' }),
   deactivate: (id: number) => request<User>(`${BASE}/users/${id}/deactivate`, { method: 'PUT' }),
   approve: (id: number) => request<User>(`${BASE}/users/${id}/approve`, { method: 'PUT' }),
+  assignRole: (id: number, roleName: string) =>
+    request<User>(`${BASE}/users/${id}/roles/${roleName}`, { method: 'PUT' }),
+  removeRole: (id: number, roleName: string) =>
+    request<User>(`${BASE}/users/${id}/roles/${roleName}`, { method: 'DELETE' }),
   delete: (id: number) => request<void>(`${BASE}/users/${id}`, { method: 'DELETE' }),
+}
+
+// ---- Affiliates (admin gestion des clés API) ----
+export interface AffiliateKeyInfo {
+  id: number
+  userId: number
+  userLogin: string
+  userFirstName: string
+  userLastName: string
+  apiKey: string
+  tier: 'FREE' | 'STARTER' | 'PREMIUM'
+  dailyQuota: number | string
+  requestsToday: number
+  lastResetDate: string
+  createdAt: string
+  hasKey?: boolean
+}
+
+export const affiliateApi = {
+  // Admin
+  getAll: () => request<AffiliateKeyInfo[]>(`${BASE}/admin/affiliates`),
+  generate: (userId: number, tier: 'FREE' | 'STARTER' | 'PREMIUM') =>
+    request<AffiliateKeyInfo>(`${BASE}/admin/affiliates/${userId}/generate?tier=${tier}`, { method: 'POST' }),
+  revoke: (userId: number) =>
+    request<void>(`${BASE}/admin/affiliates/${userId}`, { method: 'DELETE' }),
+  // User connecté — récupère sa propre clé
+  getMyKey: () => request<AffiliateKeyInfo>(`${BASE}/affiliates/me`),
 }

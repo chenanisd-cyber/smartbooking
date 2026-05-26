@@ -4,6 +4,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { paymentApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
 import type { Representation, Price } from '../types/models'
 import './ReservationPage.css'
 
@@ -79,6 +80,7 @@ export default function ReservationPage() {
   const { repId } = useParams<{ repId: string }>()
   const { user }  = useAuth()
   const navigate  = useNavigate()
+  const { addLine } = useCart()
 
   const [rep,     setRep]     = useState<Representation | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,6 +91,7 @@ export default function ReservationPage() {
   const [quantity,      setQuantity]      = useState(1)
   const [submitting,    setSubmitting]    = useState(false)
   const [submitError,   setSubmitError]   = useState<string | null>(null)
+  const [addedToCart,   setAddedToCart]   = useState(false)
 
   // Step 2: payment
   const [step,            setStep]            = useState<'select' | 'payment'>('select')
@@ -124,7 +127,35 @@ export default function ReservationPage() {
 
   const total = selectedPrice ? (Number(selectedPrice.amount) * quantity).toFixed(2) : '0.00'
 
-  // Step 1 submit → create PaymentIntent
+  // Ajout au panier (pas de paiement immédiat — l'utilisateur peut continuer ses achats)
+  const handleAddToCart = async () => {
+    if (!selectedPrice || !rep || !repId) return
+    setSubmitError(null)
+    // Récupérer les infos du spectacle (titre, slug) pour les snapshotter dans le panier
+    try {
+      const showRes = await fetch(`/api/shows/${rep.showId}`, { credentials: 'include' })
+      if (!showRes.ok) throw new Error('Impossible de charger les infos du spectacle')
+      const show = await showRes.json()
+      addLine({
+        representationId: Number(repId),
+        showId: show.id,
+        showTitle: show.title,
+        showSlug: show.slug,
+        locationName: rep.location?.name ?? null,
+        dateTime: rep.dateTime,
+        priceType: selectedPrice.type,
+        unitPrice: Number(selectedPrice.amount),
+        quantity,
+      })
+      setAddedToCart(true)
+      // Après 2 secondes, on remet le bouton à zéro pour permettre d'ajouter d'autres lignes
+      setTimeout(() => setAddedToCart(false), 2000)
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Erreur lors de l\'ajout au panier')
+    }
+  }
+
+  // Achat direct → créer un PaymentIntent immédiat avec UNE seule ligne
   const handleProceed = async (e: FormEvent) => {
     e.preventDefault()
     if (!selectedPrice || !repId) return
@@ -132,9 +163,11 @@ export default function ReservationPage() {
     setSubmitting(true)
     try {
       const { clientSecret: secret, reservationId: resId } = await paymentApi.createIntent({
-        representationId: Number(repId),
-        priceType:        selectedPrice.type,
-        quantity,
+        lines: [{
+          representationId: Number(repId),
+          priceType:        selectedPrice.type,
+          quantity,
+        }]
       })
       setClientSecret(secret)
       setReservationId(resId)
@@ -203,6 +236,7 @@ export default function ReservationPage() {
             <>
               <h2 className="res-info-title">Votre réservation</h2>
               {submitError && <div className="alert alert-error">{submitError}</div>}
+              {addedToCart && <div className="alert alert-success">✓ Ajouté au panier !</div>}
 
               <form onSubmit={handleProceed} className="res-form">
                 <div className="form-group">
@@ -238,13 +272,29 @@ export default function ReservationPage() {
                   </div>
                 </div>
 
+                {/* Bouton ajouter au panier — non-final */}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="btn btn-outline btn-block"
+                  disabled={!selectedPrice}
+                  style={{ marginBottom: '.5rem' }}
+                >
+                  🛒 Ajouter au panier
+                </button>
+
+                {/* Bouton achat direct (raccourci pour une seule ligne) */}
                 <button
                   type="submit"
                   className="btn btn-primary btn-block"
                   disabled={submitting || !selectedPrice}
                 >
-                  {submitting ? 'Chargement…' : `Procéder au paiement — ${total} €`}
+                  {submitting ? 'Chargement…' : `Acheter maintenant — ${total} €`}
                 </button>
+
+                <p style={{ marginTop: '.75rem', fontSize: '.82rem', color: 'var(--muted)', textAlign: 'center' }}>
+                  Ajoutez plusieurs spectacles au panier pour les payer en une seule fois.
+                </p>
               </form>
             </>
           ) : (

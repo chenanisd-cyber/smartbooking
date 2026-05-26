@@ -24,7 +24,9 @@ public class ReservationController {
         this.reservationService = reservationService;
     }
 
-    // Member — create a reservation
+    // Member — create a reservation directly (without Stripe payment)
+    // Note: pour le flow normal, on passe par PaymentController.createIntent
+    //       qui appelle createPending. Cet endpoint reste pour compatibilité.
     @PostMapping
     public ResponseEntity<?> create(
         @Valid @RequestBody ReservationRequest req,
@@ -32,7 +34,7 @@ public class ReservationController {
     ) {
         try {
             ReservationDto dto = ReservationDto.from(
-                reservationService.create(req, userDetails.getUsername()));
+                reservationService.createPending(req, userDetails.getUsername()));
             return ResponseEntity.status(HttpStatus.CREATED).body(dto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -44,6 +46,21 @@ public class ReservationController {
     public List<ReservationDto> myBookings(@AuthenticationPrincipal UserDetails userDetails) {
         return reservationService.findByUser(userDetails.getUsername())
             .stream().map(ReservationDto::from).toList();
+    }
+
+    // Member — cancel own reservation
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancel(
+        @PathVariable Long id,
+        @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            ReservationDto dto = ReservationDto.from(
+                reservationService.cancel(id, userDetails.getUsername()));
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // Admin — all reservations

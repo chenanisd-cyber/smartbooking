@@ -85,6 +85,13 @@ public class UserController {
         return userService.findAll().stream().map(UserProfileDto::from).toList();
     }
 
+    // GET /api/users/producers — list users with the "producer" role (for show assignment)
+    @GetMapping("/producers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserProfileDto> getProducers() {
+        return userService.findAllProducers().stream().map(UserProfileDto::from).toList();
+    }
+
     // PUT /api/users/{id}/activate
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
@@ -104,6 +111,20 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserProfileDto approve(@PathVariable Long id) {
         return UserProfileDto.from(userService.approve(id));
+    }
+
+    // PUT /api/users/{id}/roles/{roleName} — admin assigne un rôle (press, affiliate, etc.)
+    @PutMapping("/{id}/roles/{roleName}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserProfileDto assignRole(@PathVariable Long id, @PathVariable String roleName) {
+        return UserProfileDto.from(userService.assignRole(id, roleName));
+    }
+
+    // DELETE /api/users/{id}/roles/{roleName} — admin retire un rôle
+    @DeleteMapping("/{id}/roles/{roleName}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserProfileDto removeRole(@PathVariable Long id, @PathVariable String roleName) {
+        return UserProfileDto.from(userService.removeRole(id, roleName));
     }
 
     // DELETE /api/users/{id}
